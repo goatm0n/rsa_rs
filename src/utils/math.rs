@@ -50,8 +50,12 @@ pub fn choose_random_e(n:u32, phi:u32) -> u32 {
 }
 
 pub fn get_d(phi:u32, e:u32) -> u32 {
-    let (g, k, mut d) = extended_euclidian(phi.try_into().unwrap(), e.try_into().unwrap()) ;
+    let (_g, k, mut d) = extended_euclidian(phi.try_into().unwrap(), e.try_into().unwrap()) ;
     d = std::cmp::max(k, d);
+    if d < 0 {
+        let x:i32 = phi.try_into().unwrap();
+        d += x;
+    }
     return d.try_into().unwrap()
 }
 
