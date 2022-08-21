@@ -24,29 +24,37 @@ pub fn is_prime(p:u32) -> bool {
 }
 
 pub fn is_coprime(p:u32, q:u32) -> bool {
-    return gcd(p, q) == 1 
+    return gcd(p, q) == 1; 
 }
 
 fn gcd(p:u32, q:u32) -> u32 {
-    let mut p_temp = p;
-    let mut q_temp = q;
-    while q_temp != 0 {
-        p_temp= q_temp;
-        q_temp = p_temp%q_temp;
+    if p == 0 {
+        return q;
     }
-    return p_temp
+    return gcd(q % p, p);
 }
 
 pub fn choose_random_e(n:u32, phi:u32) -> u32 {
     let mut rng = rand::thread_rng();
-    let mut rand_int:u32 = rng.gen_range(0..phi);
+    let mut i:u32 = rng.gen_range(2..phi/2);
+    if i % 2 == 0 {
+        i += 1;
+    }
     let e:u32 = loop {
-        if is_prime(rand_int) && !(is_coprime(rand_int, n) && is_coprime(rand_int, phi)){
-            break rand_int;
+        dbg!(&i);
+        if i > phi {
+            i = rng.gen_range(2..phi/2);
         }
-        rand_int = rng.gen_range(0..phi);
-    }; 
-    return e
+        if !(is_prime(i)) || is_coprime(i, n) {
+            i += 2;
+            continue;
+        } 
+        if is_coprime(i, phi) {
+            break i;
+        }
+        i += 2;
+    };
+    return e;
 }
 
 pub fn get_d(phi:u32, e:u32) -> u32 {
@@ -59,6 +67,28 @@ pub fn get_d(phi:u32, e:u32) -> u32 {
     return d.try_into().unwrap()
 }
 
+pub fn mod_pow(mut base:u32,mut exp:u32, modulus:u32) -> u32 {
+    if modulus == 1 {
+        return 0;
+    }
+    let mut result:u32 = 1;
+    base = base % modulus;
+    while exp > 0 {
+        if exp % 2 == 1 {
+            result = result * base % modulus;
+        }
+        exp = exp >> 1;
+        base = base * base % modulus;
+    }
+    result 
+}
 
-
+pub fn test() {
+    let p = 5;
+    let q = 13;
+    let n = p*q;
+    let phi= (p-1)*(q-1);
+    let e = choose_random_e(n, phi);
+    dbg!(e);
+}
 

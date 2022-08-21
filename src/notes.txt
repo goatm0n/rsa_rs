@@ -1,3 +1,9 @@
-gen rand int
-for largeint..randint:
+RSA ENCRYPTION
+- generate public/private keypair
+    - input: p, q
+- encrypt string
+    - input: String, PublicKey 
+    - convert String to utf-8 byte array using String.as_bytes()
+    - encrypt utf-8 bytes
+    - return encrypted utf-8 bytes as String
 
