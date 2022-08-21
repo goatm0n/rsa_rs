@@ -34,25 +34,38 @@ fn gcd(p:u32, q:u32) -> u32 {
     return gcd(q % p, p);
 }
 
-pub fn choose_random_e(n:u32, phi:u32) -> u32 {
+pub fn safe_primes(p:u32, q:u32) -> bool {
+    let a:u32 = (p-1)/2;
+    let b:u32 = (q-1)/2;
+    if is_prime(a) && is_prime(b) {
+        return true;
+    } 
+    return false;
+}
+// - choose random e from safe primes p and q
+// - panic if p and q are not safe primes
+//
+pub fn choose_random_e(p:u32, q:u32) -> u32 {
+    if !(safe_primes(p, q)) {
+        panic!("unsafe primes"); // should probably improve this
+    }
+    let phi_n:u32 = (p-1)*(q-1);
     let mut rng = rand::thread_rng();
-    let mut i:u32 = rng.gen_range(2..phi/2);
+    let mut i:u32 = rng.gen_range(2..phi_n/2);
     if i % 2 == 0 {
         i += 1;
     }
     let e:u32 = loop {
         dbg!(&i);
-        if i > phi {
-            i = rng.gen_range(2..phi/2);
-        }
-        if !(is_prime(i)) || is_coprime(i, n) {
-            i += 2;
+        if !(is_prime(i)) {
+            i+=2; 
             continue;
         } 
-        if is_coprime(i, phi) {
+        if is_coprime(i, phi_n) {
             break i;
         }
         i += 2;
+        
     };
     return e;
 }
@@ -84,11 +97,10 @@ pub fn mod_pow(mut base:u32,mut exp:u32, modulus:u32) -> u32 {
 }
 
 pub fn test() {
-    let p = 5;
-    let q = 13;
-    let n = p*q;
-    let phi= (p-1)*(q-1);
-    let e = choose_random_e(n, phi);
+    // enforce safe primes
+    let p = 23;
+    let q = 59;
+    let e = choose_random_e(p, q);
     dbg!(e);
 }
 

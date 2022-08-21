@@ -42,7 +42,7 @@ pub fn test() {
     println!("hello from decrypt test()");
     let s = String::from("hello");
     println!("{s}");
-    let key_pair = KeyPair::generate_key_pair(5, 13);
+    let key_pair = KeyPair::generate_key_pair(19, 61);
     let encrypted_string:Vec<u32> = encrypt_string(&s, key_pair.public_key());
     dbg!(&encrypted_string);
     let decrypted_string = decrypt_string(&encrypted_string, key_pair.private_key());

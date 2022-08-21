@@ -1,6 +1,6 @@
 extern crate rsa;
 
-use crate::rsa::encryption::decrypt::test;
+use crate::rsa::utils::math::test;
 use std::env;
 
 fn main() {
