@@ -1,4 +1,4 @@
-use crate::utils::math::{choose_random_e, get_d};
+use crate::utils::math::{choose_random_primes, get_d};
 
 #[derive(Debug)]
 pub struct KeyPair {
@@ -19,11 +19,16 @@ pub struct PrivateKey {
 }
 
 impl KeyPair {
-
-    pub fn generate_key_pair(p: u32, q: u32) -> KeyPair {
+    // - generates rsa public-private keypair 
+    // - input fermat number e 
+    // - returns KeyPair
+    //
+    pub fn generate_key_pair(e:u32) -> KeyPair {
+        let (p, q) = choose_random_primes(e);
+        dbg!(&p);
+        dbg!(&q);
         let n: u32 = p*q;
         let phi: u32 = (p-1)*(q-1);
-        let e:u32 = choose_random_e(n, phi);
         let d:u32 = get_d(phi, e);
         let pub_key = PublicKey {public_exponent: e, modulus: n};
         let priv_key = PrivateKey {private_exponent: d, modulus: n};

@@ -15,7 +15,7 @@ pub fn encrypt_string(s:&String, public_key:&PublicKey) -> Vec<u32> {
     let mut encrypted_bytes: Vec<u32> = Vec::new();
     for byte in utf8_bytes.iter() {
         base = *byte as u32;
-        let enc_byte:u32 = mod_pow(base, *public_exponent, *modulus);
+        let enc_byte:u32 = mod_pow(base.into(), (*public_exponent).into(), (*modulus).into()).try_into().unwrap();
         encrypted_bytes.push(enc_byte);
     }
     encrypted_bytes
