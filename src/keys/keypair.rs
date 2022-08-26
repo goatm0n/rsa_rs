@@ -8,14 +8,14 @@ pub struct KeyPair {
 
 #[derive(Debug)]
 pub struct PublicKey {
-    public_exponent: u32,
-    modulus: u32,
+    public_exponent: usize,
+    modulus: usize,
 }
 
 #[derive(Debug)]
 pub struct PrivateKey {
-    private_exponent: u32,
-    modulus: u32,
+    private_exponent: usize,
+    modulus: usize,
 }
 
 impl KeyPair {
@@ -23,13 +23,13 @@ impl KeyPair {
     // - input fermat number e 
     // - returns KeyPair
     //
-    pub fn generate_key_pair(e:u32) -> KeyPair {
+    pub fn generate_key_pair(e:usize) -> KeyPair {
         let (p, q) = choose_random_primes(e);
         dbg!(&p);
         dbg!(&q);
-        let n: u32 = p*q;
-        let phi: u32 = (p-1)*(q-1);
-        let d:u32 = get_d(phi, e);
+        let n: usize = p*q;
+        let phi: usize = (p-1)*(q-1);
+        let d:usize = get_d(phi, e);
         let pub_key = PublicKey {public_exponent: e, modulus: n};
         let priv_key = PrivateKey {private_exponent: d, modulus: n};
         let key_pair = KeyPair {public_key: pub_key, private_key: priv_key};
@@ -47,21 +47,21 @@ impl KeyPair {
 
 impl PublicKey {
     
-    pub fn public_exponent(&self) -> &u32 {
+    pub fn public_exponent(&self) -> &usize {
         return &self.public_exponent;
     }
 
-    pub fn modulus(&self) -> &u32 {
+    pub fn modulus(&self) -> &usize {
         return &self.modulus;
     }
 
 }
 
 impl PrivateKey {
-    pub fn private_exponent(&self) -> &u32 {
+    pub fn private_exponent(&self) -> &usize {
         &self.private_exponent
     }
-    pub fn modulus(&self) -> &u32 {
+    pub fn modulus(&self) -> &usize {
         &self.modulus
     }
 }
