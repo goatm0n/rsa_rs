@@ -1,0 +1,20 @@
+extern crate rsa;
+
+use rsa::keys::keypair::KeyPair;
+use rsa::encryption::encrypt::encrypt_string;
+use rsa::encryption::decrypt::decrypt_string;
+
+#[test]
+fn test_encryption() {
+    let s = String::from("hello");
+    let key_pair = KeyPair::generate_key_pair(65537);
+    let public_key = key_pair.public_key();
+    let private_key = key_pair.private_key();
+    dbg!(private_key);
+    dbg!(public_key);
+    let enc_vec = encrypt_string(&s, public_key);
+    let dec_string = decrypt_string(&enc_vec, private_key);
+    assert_eq!(s, dec_string);
+    dbg!(dec_string);
+
+}
