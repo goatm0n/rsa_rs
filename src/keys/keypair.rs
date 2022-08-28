@@ -1,4 +1,4 @@
-use crate::utils::math::{choose_random_primes, get_d};
+use crate::utils::math::{get_n_bit_random_prime, get_d, is_coprime};
 
 #[derive(Debug)]
 pub struct KeyPair {
@@ -8,14 +8,14 @@ pub struct KeyPair {
 
 #[derive(Debug)]
 pub struct PublicKey {
-    public_exponent: usize,
-    modulus: usize,
+    public_exponent: u128,
+    modulus: u128,
 }
 
 #[derive(Debug)]
 pub struct PrivateKey {
-    private_exponent: usize,
-    modulus: usize,
+    private_exponent: u128,
+    modulus: u128,
 }
 
 impl KeyPair {
@@ -23,17 +23,21 @@ impl KeyPair {
     // - input fermat number e 
     // - returns KeyPair
     //
-    pub fn generate_key_pair(e:usize) -> KeyPair {
-        let (p, q) = choose_random_primes(e);
-        dbg!(&p);
-        dbg!(&q);
-        let n: usize = p*q;
-        let phi: usize = (p-1)*(q-1);
-        let d:usize = get_d(phi, e);
-        let pub_key = PublicKey {public_exponent: e, modulus: n};
-        let priv_key = PrivateKey {private_exponent: d, modulus: n};
-        let key_pair = KeyPair {public_key: pub_key, private_key: priv_key};
-        return key_pair
+    pub fn generate_key_pair(e:u128) -> KeyPair {
+        loop {
+            let p:u128 = get_n_bit_random_prime(32);
+            let q: u128 = get_n_bit_random_prime(32);
+            let n: u128 = p*q;
+            let phi: u128 = (p-1)*(q-1);
+            let d = get_d(phi, e);
+            if d < std::u32::MAX as u128 {
+                continue;
+            }
+            let pub_key = PublicKey {public_exponent: e, modulus: n};
+            let priv_key = PrivateKey {private_exponent: d, modulus: n};
+            let key_pair = KeyPair {public_key: pub_key, private_key: priv_key};
+            break key_pair;
+        }
     }
     
     pub fn public_key(&self) -> &PublicKey {
@@ -47,26 +51,23 @@ impl KeyPair {
 
 impl PublicKey {
     
-    pub fn public_exponent(&self) -> &usize {
+    pub fn public_exponent(&self) -> &u128 {
         return &self.public_exponent;
     }
 
-    pub fn modulus(&self) -> &usize {
+    pub fn modulus(&self) -> &u128 {
         return &self.modulus;
     }
 
 }
 
 impl PrivateKey {
-    pub fn private_exponent(&self) -> &usize {
+    pub fn private_exponent(&self) -> &u128 {
         &self.private_exponent
     }
-    pub fn modulus(&self) -> &usize {
+    pub fn modulus(&self) -> &u128 {
         &self.modulus
     }
 }
-
-
-
 
 
