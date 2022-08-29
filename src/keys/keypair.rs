@@ -1,4 +1,4 @@
-use crate::utils::math::{get_n_bit_random_prime, get_d, is_coprime};
+use crate::utils::math::{get_n_bit_random_prime, get_d};
 
 #[derive(Debug)]
 pub struct KeyPair {

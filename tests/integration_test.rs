@@ -1,8 +1,8 @@
-extern crate rsa;
+extern crate rsa_rs;
 
-use rsa::keys::keypair::KeyPair;
-use rsa::encryption::encrypt::encrypt_string;
-use rsa::encryption::decrypt::decrypt_string;
+use rsa_rs::keys::keypair::KeyPair;
+use rsa_rs::encryption::encrypt::encrypt_string;
+use rsa_rs::encryption::decrypt::decrypt_string;
 
 #[test]
 fn test_encryption() {

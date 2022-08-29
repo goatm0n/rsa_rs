@@ -4,6 +4,6 @@ RSA ENCRYPTION
 - encrypt string
     - input: String, PublicKey 
     - convert String to utf-8 byte array using String.as_bytes()
-    - encrypt utf-8 bytes
+    - encrypt utf-8 byte PublicKeys
     - return encrypted utf-8 bytes as String
 

@@ -1,7 +1,5 @@
 use crate::keys::keypair::PrivateKey;
-use crate::keys::keypair::KeyPair;
 use crate::utils::math::mod_pow;
-use crate::encryption::encrypt::encrypt_string;
 
 //- decrypt bytes
 //    - input: bytes Vec<u32>, PrivateKey
