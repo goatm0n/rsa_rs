@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 description = "rust rsa library -- UNTESTED HOBBY PROJECT -- DO NOT USE FOR SERIOUS APPLICATIONS"
 repository = "https://github.com/leninRessurect/rsa_rs"
-
+license-file = "LICENSE.txt"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
