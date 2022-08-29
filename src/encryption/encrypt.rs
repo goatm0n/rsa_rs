@@ -18,4 +18,5 @@ pub fn encrypt_string(s:&String, public_key:&PublicKey) -> Vec<u128> {
         encrypted_bytes.push(enc_byte);
     }
     return encrypted_bytes;
-} 
+}
+
