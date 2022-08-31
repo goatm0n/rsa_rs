@@ -47,6 +47,12 @@ impl KeyPair {
     pub fn private_key(&self) -> &PrivateKey {
         return &&self.private_key;
     }
+
+    pub fn from(e:u128, d:u128, n:u128) -> KeyPair {
+        let public_key = PublicKey{public_exponent: e, modulus: n};
+        let private_key = PrivateKey{private_exponent: d, modulus: n};
+        return KeyPair{public_key, private_key};
+    }
 }
 
 impl PublicKey {
