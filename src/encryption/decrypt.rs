@@ -29,7 +29,6 @@ pub fn decrypt_utf8(encrypted_utf8:&Vec<u128>, private_key:&PrivateKey) -> Vec<u
 //
 pub fn decrypt_string(encrypted_utf8:&Vec<u128>, private_key:&PrivateKey) -> String {
     let utf8_vec:Vec<u8> = decrypt_utf8(encrypted_utf8, &private_key);
-    dbg!(&utf8_vec);
     let decrypted_string = String::from_utf8(utf8_vec);
     let result = match decrypted_string {
         Ok(my_string) => my_string,
