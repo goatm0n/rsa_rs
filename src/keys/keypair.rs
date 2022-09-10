@@ -61,8 +61,16 @@ impl PublicKey {
         return &self.public_exponent;
     }
 
+    pub fn public_exponent_clone(&self) -> u128 {
+        self.public_exponent.clone()
+    }
+
     pub fn modulus(&self) -> &u128 {
         return &self.modulus;
+    }
+
+    pub fn modulus_clone(&self) -> u128 {
+        self.modulus.clone()
     }
 
 }
