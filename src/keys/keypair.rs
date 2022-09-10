@@ -8,8 +8,8 @@ pub struct KeyPair {
 
 #[derive(Debug)]
 pub struct PublicKey {
-    public_exponent: u128,
-    modulus: u128,
+    pub public_exponent: u128,
+    pub modulus: u128,
 }
 
 #[derive(Debug)]
