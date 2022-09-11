@@ -1,4 +1,5 @@
 use crate::utils::math::{get_n_bit_random_prime, get_d};
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug)]
 pub struct KeyPair {
@@ -6,7 +7,7 @@ pub struct KeyPair {
     private_key: PrivateKey,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct PublicKey {
     pub public_exponent: u128,
     pub modulus: u128,
