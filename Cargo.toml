@@ -11,3 +11,6 @@ license-file = "LICENSE.txt"
 [dependencies]
 rand = "0.8.5"
 serde = { version = "1.0", features = ["derive"] }
+num-bigint = { version = "0.4", features = ["serde", "rand"] }
+num-traits = "0.2"
+num-iter = "0.1"
