@@ -1,5 +1,4 @@
 use num_bigint::BigUint;
-
 use crate::keys::keypair::PublicKey;
 use crate::utils::math::mod_pow;
 

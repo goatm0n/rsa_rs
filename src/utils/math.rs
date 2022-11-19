@@ -101,6 +101,7 @@ pub fn n_bit_random(n:u32) -> BigUint {
 //      - return Vec<uzise> contiaing primes <= n
 //
 pub fn sieve_of_eratosthenes(n:usize) -> Vec<BigUint> {
+
     // create boolean array prime[0..n], init all as true
     let mut prime: Vec<bool> = vec![true; n+1];
     // set 0, 1 false
@@ -204,7 +205,6 @@ fn miller_rabin(miller_rabin_candidate: BigUint) -> bool {
     }
     return true;
 }
-
 
 pub fn get_n_bit_random_prime(n:u32) -> BigUint {
     loop {
