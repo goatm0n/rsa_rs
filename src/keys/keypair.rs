@@ -25,11 +25,11 @@ impl KeyPair {
     // - input fermat number e 
     // - returns KeyPair
     //<<<<<TODO>>>Take e by reference>>>>>
-    pub fn generate_key_pair(e:BigUint) -> KeyPair {
+    pub fn generate_key_pair(e:BigUint, bits: u32) -> KeyPair {
         let one = BigUint::from(1u32);
         loop {
-            let p:BigUint = get_n_bit_random_prime(32);
-            let q: BigUint = get_n_bit_random_prime(32);
+            let p:BigUint = get_n_bit_random_prime(bits.clone());
+            let q: BigUint = get_n_bit_random_prime(bits.clone());
             let n: BigUint = &p*&q;
             let phi: BigUint = (&p-&one)*(&q-&one);
             //<<<<<TODO>>>Make get_d take args by reference>>>>>

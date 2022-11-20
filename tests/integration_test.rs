@@ -10,7 +10,7 @@ use rsa_rs::encryption::decrypt::decrypt_string;
 fn test_encryption() {
     let s = String::from("hello");
     let e = BigUint::from(65537u32);
-    let key_pair = KeyPair::generate_key_pair(e);
+    let key_pair = KeyPair::generate_key_pair(e, 32);
     let public_key = key_pair.public_key();
     let private_key = key_pair.private_key();
     dbg!(private_key);
