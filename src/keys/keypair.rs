@@ -26,12 +26,12 @@ impl KeyPair {
     // - returns KeyPair
     //<<<<<TODO>>>Take e by reference>>>>>
     pub fn generate_key_pair(e:BigUint) -> KeyPair {
-        let ONE = BigUint::from(1u32);
+        let one = BigUint::from(1u32);
         loop {
             let p:BigUint = get_n_bit_random_prime(32);
             let q: BigUint = get_n_bit_random_prime(32);
             let n: BigUint = &p*&q;
-            let phi: BigUint = (&p-&ONE)*(&q-&ONE);
+            let phi: BigUint = (&p-&one)*(&q-&one);
             //<<<<<TODO>>>Make get_d take args by reference>>>>>
             let _e = e.clone();
             let d: BigUint = get_d(phi, _e);

@@ -22,22 +22,24 @@ pub fn extended_euclidian(a:BigUint, b:BigUint) -> (BigUint, BigInt, BigInt) {
 }
 
 pub fn is_prime(p:BigUint) -> bool {
-    let ZERO = BigUint::from(0u32);
-    let ONE = BigUint::from(1u32);
-    let THREE = BigUint::from(3u32);
-    let FOUR = BigUint::from(4u32);
-    let FIVE = BigUint::from(5u32);
-    if p <= ONE || p == FOUR {return false;} // covers non-primes 0,1 and 4
-    if p <= FIVE {return true;} // covers primes 2,3 and 5 (4 eliminated)
+    let zero = BigUint::from(0u32);
+    let one = BigUint::from(1u32);
+    let four = BigUint::from(4u32);
+    let five = BigUint::from(5u32);
+    if p <= one || p == four {return false;} // covers non-primes 0,1 and 4
+    if p <= five {return true;} // covers primes 2,3 and 5 (4 eliminated)
     // now p is >= 5
-    for i in num_iter::range(FIVE, p.clone()) {
-        if &p % i == ZERO {
+    for i in num_iter::range(five, p.clone()) {
+        if &p % i == zero {
             return false;
         } 
     }
     return true;
 }
 
+/// returns true if p, q coprime;
+/// 
+/// 
 pub fn is_coprime(p:u128, q:u128) -> bool {
     return gcd(p, q) == 1; 
 }
@@ -50,11 +52,11 @@ fn gcd(p:u128, q:u128) -> u128 {
 }
 
 pub fn get_d(phi:BigUint, e:BigUint) -> BigUint {
-    let ZERO = BigInt::from(0u32);
+    let zero = BigInt::from(0u32);
     let _phi = phi.clone();
     let (_g, k, mut d) = extended_euclidian(_phi, e);
     d = std::cmp::max(k, d);
-    if d < ZERO {
+    if d < zero {
         d += BigInt::from(phi);
     }
     assert!(d >= BigInt::from(0u32));
@@ -63,16 +65,16 @@ pub fn get_d(phi:BigUint, e:BigUint) -> BigUint {
 }
 
 pub fn mod_pow(mut base:BigUint, mut exp:BigUint, modulus:BigUint) -> BigUint {
-    let ZERO = BigUint::from(0u32);
-    let ONE = BigUint::from(1u32);
-    let TWO = BigUint::from(2u32);
-    if modulus == ONE {
-        return ZERO;
+    let zero = BigUint::from(0u32);
+    let one = BigUint::from(1u32);
+    let two = BigUint::from(2u32);
+    if modulus == one {
+        return two;
     }
-    let mut result = ONE.clone();
+    let mut result = one.clone();
     base = base % &modulus;
-    while exp > ZERO {
-        if &exp % &TWO == ONE {
+    while exp > zero {
+        if &exp % &two == one {
             result = &result * &base % &modulus;
         }
         exp = exp >> 1;
@@ -86,11 +88,11 @@ pub fn mod_pow(mut base:BigUint, mut exp:BigUint, modulus:BigUint) -> BigUint {
 //      - returns random integer: u128
 //
 pub fn n_bit_random(n:u32) -> BigUint {
-    let TWO = BigUint::from(2u32);
+    let two = BigUint::from(2u32);
     let mut rng = rand::thread_rng();
     // returns a random number between 2^(n-1)+1 and 2^(n)-1
-    let low = TWO.pow(n-1)+1.to_biguint().unwrap();
-    let high = TWO.pow(n)-1.to_biguint().unwrap();
+    let low = two.pow(n-1)+1.to_biguint().unwrap();
+    let high = two.pow(n)-1.to_biguint().unwrap();
     let rand_int = rng.gen_biguint_range(&low, &high);
     //let rand_int = rng.gen_range(low..high);
     return rand_int
@@ -137,12 +139,12 @@ pub fn sieve_of_eratosthenes(n:usize) -> Vec<BigUint> {
 //      - return prime number: usize
 //
 fn get_low_level_prime(n:u32) -> BigUint {
-    let ZERO = BigUint::from(0u32);
+    let zero = BigUint::from(0u32);
     let first_primes = sieve_of_eratosthenes(10000);
     loop {
         let prime_candidate = n_bit_random(n);
         for divisor in &first_primes {
-            if &prime_candidate%divisor == ZERO && divisor.pow(2) <= prime_candidate {
+            if &prime_candidate%divisor == zero && divisor.pow(2) <= prime_candidate {
                 continue;
             } else {
                 return prime_candidate;
@@ -152,8 +154,8 @@ fn get_low_level_prime(n:u32) -> BigUint {
 }
 
 fn trial_composite(round_tester:BigUint, max_divisions_by_2:u32, even_component:BigUint, miller_rabin_candidate: BigUint) -> bool {
-    let ONE = BigUint::from(1u32);
-    let TWO = BigUint::from(2u32);
+    let one = BigUint::from(1u32);
+    let two = BigUint::from(2u32);
     // <<<<<<TODO >>> pass args to mod_pow by reference>>>>>>
     let _round_tester = round_tester.clone();
     let _max_divisions_by_2 = max_divisions_by_2.clone();
@@ -162,14 +164,14 @@ fn trial_composite(round_tester:BigUint, max_divisions_by_2:u32, even_component:
     let base = round_tester.clone();
     let exp = even_component.clone();
     let modulus = miller_rabin_candidate.clone();
-    if mod_pow(base, exp, modulus) == ONE {
+    if mod_pow(base, exp, modulus) == one {
         return false;
     }
     for i in 0..max_divisions_by_2 {
         let base = _round_tester.clone();
-        let exp = TWO.pow(i) * _even_component.clone();
+        let exp = two.pow(i) * _even_component.clone();
         let modulus = _miller_rabin_candidate.clone();
-        if mod_pow(base, exp, modulus) == &miller_rabin_candidate - &ONE {
+        if mod_pow(base, exp, modulus) == &miller_rabin_candidate - &one {
             return false;
         }
     }
@@ -178,24 +180,24 @@ fn trial_composite(round_tester:BigUint, max_divisions_by_2:u32, even_component:
 
 
 fn miller_rabin(miller_rabin_candidate: BigUint) -> bool {
-    let ONE = BigUint::from(1u32);
-    let TWO = BigUint::from(2u32);
-    let ZERO = BigUint::from(0u32);
+    let one = BigUint::from(1u32);
+    let two = BigUint::from(2u32);
+    let zero = BigUint::from(0u32);
 
     let mut max_divisions_by_2 = 0;
-    let mut even_component = &miller_rabin_candidate - &ONE;
+    let mut even_component = &miller_rabin_candidate - &one;
     let mut rng = rand::thread_rng(); 
-    while &even_component % &TWO == ZERO {
+    while &even_component % &two == zero {
         even_component >>= 1;
         max_divisions_by_2 += 1;
     }
-    let test1 = TWO.pow(max_divisions_by_2) * &even_component;
-    let test2 = &miller_rabin_candidate - &ONE;
+    let test1 = two.pow(max_divisions_by_2) * &even_component;
+    let test2 = &miller_rabin_candidate - &one;
     assert_eq!(test1, test2);
     // set number of primes here
     let number_of_rabin_trials = 20;
     for _i in 0..number_of_rabin_trials {
-        let round_tester = rng.gen_biguint_range(&TWO, &miller_rabin_candidate);
+        let round_tester = rng.gen_biguint_range(&two, &miller_rabin_candidate);
         let _max_divisions_by_2 = max_divisions_by_2.clone();
         let _even_component = even_component.clone();
         let _miller_rabin_candidate = miller_rabin_candidate.clone();
