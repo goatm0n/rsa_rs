@@ -1,5 +1,6 @@
 use crate::utils::math::{get_n_bit_random_prime, get_d};
 use serde::{Deserialize, Serialize};
+use num_bigint::BigUint;
 
 #[derive(Debug)]
 pub struct KeyPair {
@@ -9,33 +10,36 @@ pub struct KeyPair {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct PublicKey {
-    pub public_exponent: u128,
-    pub modulus: u128,
+    pub public_exponent: BigUint,
+    pub modulus: BigUint,
 }
 
 #[derive(Debug)]
 pub struct PrivateKey {
-    private_exponent: u128,
-    modulus: u128,
+    private_exponent: BigUint,
+    modulus: BigUint,
 }
 
 impl KeyPair {
     // - generates rsa public-private keypair 
     // - input fermat number e 
     // - returns KeyPair
-    //
-    pub fn generate_key_pair(e:u128) -> KeyPair {
+    //<<<<<TODO>>>Take e by reference>>>>>
+    pub fn generate_key_pair(e:BigUint) -> KeyPair {
+        let one = BigUint::from(1u32);
         loop {
-            let p:u128 = get_n_bit_random_prime(32);
-            let q: u128 = get_n_bit_random_prime(32);
-            let n: u128 = p*q;
-            let phi: u128 = (p-1)*(q-1);
-            let d = get_d(phi, e);
-            if d < std::u32::MAX as u128 {
+            let p:BigUint = get_n_bit_random_prime(32);
+            let q: BigUint = get_n_bit_random_prime(32);
+            let n: BigUint = &p*&q;
+            let phi: BigUint = (&p-&one)*(&q-&one);
+            //<<<<<TODO>>>Make get_d take args by reference>>>>>
+            let _e = e.clone();
+            let d: BigUint = get_d(phi, _e);
+            if d < BigUint::from(std::u32::MAX) {
                 continue;
             }
-            let pub_key = PublicKey {public_exponent: e, modulus: n};
-            let priv_key = PrivateKey {private_exponent: d, modulus: n};
+            let pub_key = PublicKey {public_exponent: e, modulus: n.clone()};
+            let priv_key = PrivateKey {private_exponent: d, modulus: n.clone()};
             let key_pair = KeyPair {public_key: pub_key, private_key: priv_key};
             break key_pair;
         }
@@ -49,38 +53,38 @@ impl KeyPair {
         return &&self.private_key;
     }
 
-    pub fn from(e:u128, d:u128, n:u128) -> KeyPair {
-        let public_key = PublicKey{public_exponent: e, modulus: n};
-        let private_key = PrivateKey{private_exponent: d, modulus: n};
+    pub fn from(e:BigUint, d:BigUint, n:BigUint) -> KeyPair {
+        let public_key = PublicKey{public_exponent: e, modulus: n.clone()};
+        let private_key = PrivateKey{private_exponent: d, modulus: n.clone()};
         return KeyPair{public_key, private_key};
     }
 }
 
 impl PublicKey {
     
-    pub fn public_exponent(&self) -> &u128 {
+    pub fn public_exponent(&self) -> &BigUint {
         return &self.public_exponent;
     }
 
-    pub fn public_exponent_clone(&self) -> u128 {
+    pub fn public_exponent_clone(&self) -> BigUint {
         self.public_exponent.clone()
     }
 
-    pub fn modulus(&self) -> &u128 {
+    pub fn modulus(&self) -> &BigUint {
         return &self.modulus;
     }
 
-    pub fn modulus_clone(&self) -> u128 {
+    pub fn modulus_clone(&self) -> BigUint {
         self.modulus.clone()
     }
 
 }
 
 impl PrivateKey {
-    pub fn private_exponent(&self) -> &u128 {
+    pub fn private_exponent(&self) -> &BigUint {
         &self.private_exponent
     }
-    pub fn modulus(&self) -> &u128 {
+    pub fn modulus(&self) -> &BigUint {
         &self.modulus
     }
 }

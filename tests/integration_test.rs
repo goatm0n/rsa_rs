@@ -1,5 +1,7 @@
 extern crate rsa_rs;
 
+use num_bigint::BigUint;
+
 use rsa_rs::keys::keypair::KeyPair;
 use rsa_rs::encryption::encrypt::encrypt_string;
 use rsa_rs::encryption::decrypt::decrypt_string;
@@ -7,7 +9,8 @@ use rsa_rs::encryption::decrypt::decrypt_string;
 #[test]
 fn test_encryption() {
     let s = String::from("hello");
-    let key_pair = KeyPair::generate_key_pair(65537);
+    let e = BigUint::from(65537u32);
+    let key_pair = KeyPair::generate_key_pair(e);
     let public_key = key_pair.public_key();
     let private_key = key_pair.private_key();
     dbg!(private_key);

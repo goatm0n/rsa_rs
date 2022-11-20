@@ -1,6 +1,6 @@
 [package]
 name = "rsa_rs"
-version = "0.1.5"
+version = "0.2.0"
 edition = "2021"
 description = "rust rsa library -- UNTESTED HOBBY PROJECT -- DO NOT USE FOR SERIOUS APPLICATIONS"
 repository = "https://github.com/leninRessurect/rsa_rs"
@@ -11,3 +11,6 @@ license-file = "LICENSE.txt"
 [dependencies]
 rand = "0.8.5"
 serde = { version = "1.0", features = ["derive"] }
+num-bigint = { version = "0.4", features = ["serde", "rand"] }
+num-traits = "0.2"
+num-iter = "0.1"
