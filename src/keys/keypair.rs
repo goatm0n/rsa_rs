@@ -89,4 +89,14 @@ impl PrivateKey {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::KeyPair;
+    use num_bigint::BigUint;
+
+    #[test]
+    fn test_key_gen() {
+        KeyPair::generate_key_pair(BigUint::from(65537u32), 12);
+    }
+}
 

@@ -1,5 +1,6 @@
 use num_bigint::{BigUint, BigInt, ToBigUint, RandBigInt};
-//use std::thread;
+use std::thread;
+use std::sync::mpsc;
 
 
 pub fn extended_euclidian(a:BigUint, b:BigUint) -> (BigUint, BigInt, BigInt) {
@@ -221,20 +222,19 @@ pub fn get_n_bit_random_prime(n:u32) -> BigUint {
     }
 }
 
-/* pub fn concurrently_get_n_bit_random_prime(n:&u32, n_threads: u8) -> u128 {
-    let random_prime: u128;
-
+fn thread_get_n_bit_random_prime(n:u32, n_threads:u32) -> BigUint {
+    let (tx, rx) = mpsc::channel();
     for _ in 0..n_threads {
-        thread::spawn(|| {
-            loop {
-                let n_bits
-                let prime_candidate = get_low_level_prime(n);
-            }
+        let tx = tx.clone();
+        let n = n.clone();
+        thread::spawn(move || {
+            let res = get_n_bit_random_prime(n);
+            tx.send(res).unwrap();
         });
     }
+    rx.recv().unwrap()
+}
 
-    return random_prime; 
-} */
 
 #[cfg(test)]
 mod tests {
@@ -244,7 +244,7 @@ mod tests {
         sieve_of_eratosthenes,
         is_prime,
         get_n_bit_random_prime,
-        //concurrently_get_n_bit_random_prime
+        thread_get_n_bit_random_prime,
     };
     #[test]
     fn unit_test_is_prime_true() {
@@ -266,10 +266,18 @@ mod tests {
 
     #[test]
     fn test_get_n_bit_random_prime() {
-        let p = get_n_bit_random_prime(16);
+        let p = get_n_bit_random_prime(1024);
         dbg!(&p);
         // this can get very computationally heavy for larger numbers
-        assert_eq!(true, is_prime(p));
+        //assert_eq!(true, is_prime(p));
+    }
+
+    #[test]
+    fn test_thread_get_n_bit_random_prime() {
+        let p = thread_get_n_bit_random_prime(1024, 4);
+        dbg!(&p);
+        // this can get very computationally heavy for larger numbers
+        //assert_eq!(true, is_prime(p));
     }
     
     /* #[test]
