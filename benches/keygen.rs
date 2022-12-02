@@ -46,5 +46,5 @@ fn bench_concurrent_key_gen_threaded(c: &mut Criterion) {
     );
 }
 
-criterion_group!(benches, bench_key_gen, bench_threaded_key_gen);
+criterion_group!(benches, bench_key_gen, bench_threaded_key_gen, bench_concurrent_key_gen, bench_concurrent_key_gen_threaded);
 criterion_main!(benches);
