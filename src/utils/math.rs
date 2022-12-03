@@ -190,7 +190,7 @@ fn miller_rabin(miller_rabin_candidate: &BigUint) -> bool {
         even_component >>= 1;
         max_divisions_by_2 += 1;
     }
-    // primality tests do no delete
+    // primality tests do not delete
     let test1 = two.pow(max_divisions_by_2) * &even_component;
     let test2 = miller_rabin_candidate - &one;
     assert_eq!(test1, test2);
