@@ -1,6 +1,6 @@
 [package]
 name = "rsa_rs"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 description = "rust rsa library -- UNTESTED HOBBY PROJECT -- DO NOT USE FOR SERIOUS APPLICATIONS"
 repository = "https://github.com/leninRessurect/rsa_rs"
@@ -14,3 +14,14 @@ serde = { version = "1.0", features = ["derive"] }
 num-bigint = { version = "0.4", features = ["serde", "rand"] }
 num-traits = "0.2"
 num-iter = "0.1"
+
+[dev-dependencies]
+criterion = { version = "0.3", features = ["html_reports"] }
+
+[[bench]]
+name = "keygen"
+harness = false
+
+[[bench]]
+name = "primegen"
+harness = false

@@ -1,6 +1,12 @@
-use crate::utils::math::{get_n_bit_random_prime, get_d};
+use std::sync::mpsc;
+use std::thread;
+
 use serde::{Deserialize, Serialize};
 use num_bigint::BigUint;
+
+use crate::utils::math::{get_n_bit_random_prime, get_d};
+use crate::utils::io::cached_primes;
+
 
 #[derive(Debug)]
 pub struct KeyPair {
@@ -25,23 +31,37 @@ impl KeyPair {
     // - input fermat number e 
     // - returns KeyPair
     //<<<<<TODO>>>Take e by reference>>>>>
-    pub fn generate_key_pair(e:BigUint) -> KeyPair {
+    pub fn generate_key_pair(e:BigUint, bits: u32) -> KeyPair {
         let one = BigUint::from(1u32);
+        let first_primes = cached_primes();
+        let (tx, rx) = mpsc::channel();
+
         loop {
-            let p:BigUint = get_n_bit_random_prime(32);
-            let q: BigUint = get_n_bit_random_prime(32);
-            let n: BigUint = &p*&q;
+            let first_primes1 = first_primes.clone();
+            let tx1 = tx.clone();
+            let tx2 = tx.clone();
+            // spawn a thread to calculate p
+            thread::spawn(move || {
+                let p:BigUint = get_n_bit_random_prime(bits.clone(), &first_primes1);
+                tx1.send(p).unwrap();
+            });
+            let q: BigUint = get_n_bit_random_prime(bits.clone(), &first_primes);
+            let _q = q.clone();
+            let p = rx.recv().unwrap();
+            let _p = p.clone();
+            // spawn a thread to calculate n
+            thread::spawn(move || {
+                let n: BigUint = _p*_q;
+                tx2.send(n).unwrap();
+            });
             let phi: BigUint = (&p-&one)*(&q-&one);
-            //<<<<<TODO>>>Make get_d take args by reference>>>>>
-            let _e = e.clone();
-            let d: BigUint = get_d(phi, _e);
+            let d: BigUint = get_d(phi, e.clone());
+            let n = rx.recv().unwrap();
             if d < BigUint::from(std::u32::MAX) {
                 continue;
             }
-            let pub_key = PublicKey {public_exponent: e, modulus: n.clone()};
-            let priv_key = PrivateKey {private_exponent: d, modulus: n.clone()};
-            let key_pair = KeyPair {public_key: pub_key, private_key: priv_key};
-            break key_pair;
+            let key_pair = KeyPair::from(e, d, n);
+            break key_pair
         }
     }
     
@@ -89,4 +109,16 @@ impl PrivateKey {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::KeyPair;
+    use num_bigint::BigUint;
+
+    #[test]
+    fn test_key_gen() {
+        let key = KeyPair::generate_key_pair(BigUint::from(65537u32), 128);
+        dbg!(key);
+    }
+
+}
 

@@ -1,6 +1,6 @@
 use num_bigint::{BigUint, BigInt, ToBigUint, RandBigInt};
-//use std::thread;
-
+use std::thread;
+use std::sync::mpsc;
 
 pub fn extended_euclidian(a:BigUint, b:BigUint) -> (BigUint, BigInt, BigInt) {
     if a == BigUint::from(0u32) {
@@ -16,7 +16,7 @@ pub fn extended_euclidian(a:BigUint, b:BigUint) -> (BigUint, BigInt, BigInt) {
         let _b = BigInt::from(b.clone());
         let (g, x, y) = extended_euclidian(b%&a, a);
         // some fuckery
-        
+
         return (g, y-(_b/_a)*&x, x) 
     }
 }
@@ -98,10 +98,10 @@ pub fn n_bit_random(n:u32) -> BigUint {
     return rand_int
 }
 
-// -generate all primes <= n 
-//      - n: uzise, max prime size
-//      - return Vec<uzise> contiaing primes <= n
-//
+/// -generate all primes <= n 
+///      - n: uzise, max prime size
+///      - return Vec<uzise> contiaing primes <= n
+///
 pub fn sieve_of_eratosthenes(n:usize) -> Vec<BigUint> {
 
     // create boolean array prime[0..n], init all as true
@@ -138,12 +138,11 @@ pub fn sieve_of_eratosthenes(n:usize) -> Vec<BigUint> {
 //      - input n: u32 number of bits
 //      - return prime number: usize
 //
-fn get_low_level_prime(n:u32) -> BigUint {
+fn get_low_level_prime(n:u32, first_primes: &Vec<BigUint>) -> BigUint {
     let zero = BigUint::from(0u32);
-    let first_primes = sieve_of_eratosthenes(10000);
     loop {
         let prime_candidate = n_bit_random(n);
-        for divisor in &first_primes {
+        for divisor in first_primes {
             if &prime_candidate%divisor == zero && divisor.pow(2) <= prime_candidate {
                 continue;
             } else {
@@ -179,62 +178,60 @@ fn trial_composite(round_tester:BigUint, max_divisions_by_2:u32, even_component:
 }
 
 
-fn miller_rabin(miller_rabin_candidate: BigUint) -> bool {
+fn miller_rabin(miller_rabin_candidate: &BigUint) -> bool {
     let one = BigUint::from(1u32);
     let two = BigUint::from(2u32);
     let zero = BigUint::from(0u32);
 
     let mut max_divisions_by_2 = 0;
-    let mut even_component = &miller_rabin_candidate - &one;
+    let mut even_component = miller_rabin_candidate - &one;
     let mut rng = rand::thread_rng(); 
     while &even_component % &two == zero {
         even_component >>= 1;
         max_divisions_by_2 += 1;
     }
+    // primality tests do not delete
     let test1 = two.pow(max_divisions_by_2) * &even_component;
-    let test2 = &miller_rabin_candidate - &one;
+    let test2 = miller_rabin_candidate - &one;
     assert_eq!(test1, test2);
     // set number of primes here
     let number_of_rabin_trials = 20;
     for _i in 0..number_of_rabin_trials {
-        let round_tester = rng.gen_biguint_range(&two, &miller_rabin_candidate);
-        let _max_divisions_by_2 = max_divisions_by_2.clone();
-        let _even_component = even_component.clone();
-        let _miller_rabin_candidate = miller_rabin_candidate.clone();
-        if trial_composite(round_tester, _max_divisions_by_2, _even_component, _miller_rabin_candidate) {
+        let round_tester = rng.gen_biguint_range(&two, miller_rabin_candidate);
+        if trial_composite(round_tester, max_divisions_by_2.clone(), even_component.clone(), miller_rabin_candidate.clone()) {
             return false;
         }
     }
     return true;
 }
 
-pub fn get_n_bit_random_prime(n:u32) -> BigUint {
+pub fn get_n_bit_random_prime(n:u32, first_primes: &Vec<BigUint>) -> BigUint {
     loop {
-        let prime_candidate = get_low_level_prime(n);
-        //<<<<TODO>>>Make miller_rabin take args by reference>>>>>>
-        let _prime_candidate = prime_candidate.clone();
-        if !miller_rabin(_prime_candidate) {
+        let miller_rabin_candidate = get_low_level_prime(n, first_primes);
+        if !miller_rabin(&miller_rabin_candidate) {
             continue;
         } else {
-            break prime_candidate;
+            break miller_rabin_candidate;
         }
     }
 }
 
-/* pub fn concurrently_get_n_bit_random_prime(n:&u32, n_threads: u8) -> u128 {
-    let random_prime: u128;
-
+/// Calls get_n_bit_random_prime on n_threads.
+/// Returns value from first thread finished
+pub fn thread_get_n_bit_random_prime(n:u32, n_threads:u32, first_primes: &Vec<BigUint>) -> BigUint {
+    let (tx, rx) = mpsc::channel();
     for _ in 0..n_threads {
-        thread::spawn(|| {
-            loop {
-                let n_bits
-                let prime_candidate = get_low_level_prime(n);
-            }
+        let tx = tx.clone();
+        let n = n.clone();
+        let first_primes = first_primes.clone();
+        thread::spawn(move || {
+            let res = get_n_bit_random_prime(n, &first_primes);
+            tx.send(res).unwrap();
         });
     }
+    rx.recv().unwrap()
+}
 
-    return random_prime; 
-} */
 
 #[cfg(test)]
 mod tests {
@@ -244,7 +241,7 @@ mod tests {
         sieve_of_eratosthenes,
         is_prime,
         get_n_bit_random_prime,
-        //concurrently_get_n_bit_random_prime
+        thread_get_n_bit_random_prime,
     };
     #[test]
     fn unit_test_is_prime_true() {
@@ -266,10 +263,20 @@ mod tests {
 
     #[test]
     fn test_get_n_bit_random_prime() {
-        let p = get_n_bit_random_prime(16);
+        let first_primes = sieve_of_eratosthenes(1000);
+        let p = get_n_bit_random_prime(32, &first_primes);
         dbg!(&p);
         // this can get very computationally heavy for larger numbers
-        assert_eq!(true, is_prime(p));
+        //assert_eq!(true, is_prime(p));
+    }
+
+    #[test]
+    fn test_thread_get_n_bit_random_prime() {
+        let first_primes = sieve_of_eratosthenes(1000);
+        let p = thread_get_n_bit_random_prime(32, 4, &first_primes);
+        dbg!(&p);
+        // this can get very computationally heavy for larger numbers
+        //assert_eq!(true, is_prime(p));
     }
     
     /* #[test]
