@@ -16,7 +16,7 @@ pub fn write_vec_biguint(path: &PathBuf, data: Vec<BigUint>) {
 
 pub fn read_vec_biguint(path: &PathBuf) -> Vec<BigUint> {
     let file_content = std::fs::read_to_string(path).expect("could not read file");
-    if file_content.len() == 0 {panic!("empty-file: nothing to decrypt")}
+    if file_content.is_empty() {panic!("empty-file: nothing to decrypt")}
     let mut num_string = String::new();
     let mut num_vec:Vec<BigUint> = Vec::new();
     for c in file_content.chars() {
@@ -28,7 +28,7 @@ pub fn read_vec_biguint(path: &PathBuf) -> Vec<BigUint> {
             num_string.clear();
         }
     }
-    return num_vec;
+    num_vec
 }
 
 pub fn cache_primes(n: usize, path: &PathBuf) {
@@ -37,8 +37,8 @@ pub fn cache_primes(n: usize, path: &PathBuf) {
 }
 
 ///  returns list of small primes from txt file
-pub fn cached_primes() -> Vec<BigUint> {
-    read_vec_biguint(&PathBuf::from("primelist.txt"))
+pub fn cached_primes(path: &str) -> Vec<BigUint> {
+    read_vec_biguint(&PathBuf::from(path))
 }
 
 #[cfg(test)]
@@ -63,6 +63,6 @@ mod tests {
 
     #[test]
     fn test_cached_primes() {
-        assert_eq!(cached_primes(), sieve_of_eratosthenes(100000));
+        assert_eq!(cached_primes("primelist.txt"), sieve_of_eratosthenes(100000));
     }
 }

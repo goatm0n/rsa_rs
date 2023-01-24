@@ -13,8 +13,8 @@ pub fn test_threaded_key_gen() {
     let bits = 128u32;
     let e = BigUint::from(65537u32);
     let keypair = loop {
-        let p:BigUint = thread_get_n_bit_random_prime(bits.clone(), 4,&first_primes);
-        let q: BigUint = thread_get_n_bit_random_prime(bits.clone(), 4,&first_primes.clone());
+        let p:BigUint = thread_get_n_bit_random_prime(&bits, 4,&first_primes);
+        let q: BigUint = thread_get_n_bit_random_prime(&bits, 4,&first_primes.clone());
         let n: BigUint = &p*&q;
         let phi: BigUint = (&p-&one)*(&q-&one);
         //<<<<<TODO>>>Make get_d take args by reference>>>>>

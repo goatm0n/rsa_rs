@@ -4,7 +4,7 @@ use std::sync::mpsc;
 
 pub fn extended_euclidian(a:BigUint, b:BigUint) -> (BigUint, BigInt, BigInt) {
     if a == BigUint::from(0u32) {
-        return (b, BigInt::from(0u32), BigInt::from(1u32)) 
+        (b, BigInt::from(0u32), BigInt::from(1u32)) 
     }
     else {
         // unenjoyable >>> TODO >>> use references for extended_euclidian
@@ -17,7 +17,7 @@ pub fn extended_euclidian(a:BigUint, b:BigUint) -> (BigUint, BigInt, BigInt) {
         let (g, x, y) = extended_euclidian(b%&a, a);
         // some fuckery
 
-        return (g, y-(_b/_a)*&x, x) 
+        (g, y-(_b/_a)*&x, x) 
     }
 }
 
@@ -34,21 +34,21 @@ pub fn is_prime(p:BigUint) -> bool {
             return false;
         } 
     }
-    return true;
+    true
 }
 
 /// returns true if p, q coprime;
 /// 
 /// 
 pub fn is_coprime(p:u128, q:u128) -> bool {
-    return gcd(p, q) == 1; 
+    gcd(p, q) == 1
 }
 
 fn gcd(p:u128, q:u128) -> u128 {
     if p == 0 {
         return q;
     }
-    return gcd(q % p, p);
+    gcd(q % p, p)
 }
 
 pub fn get_d(phi:BigUint, e:BigUint) -> BigUint {
@@ -61,7 +61,7 @@ pub fn get_d(phi:BigUint, e:BigUint) -> BigUint {
     }
     assert!(d >= BigInt::from(0u32));
     let _d: BigUint = d.clone().try_into().unwrap();
-    return _d
+    _d
 }
 
 pub fn mod_pow(mut base:BigUint, mut exp:BigUint, modulus:BigUint) -> BigUint {
@@ -72,12 +72,12 @@ pub fn mod_pow(mut base:BigUint, mut exp:BigUint, modulus:BigUint) -> BigUint {
         return two;
     }
     let mut result = one.clone();
-    base = base % &modulus;
+    base %= &modulus;
     while exp > zero {
         if &exp % &two == one {
             result = &result * &base % &modulus;
         }
-        exp = exp >> 1;
+        exp >>= 1;
         base = &base * &base % &modulus;
     }
     result 
@@ -87,15 +87,13 @@ pub fn mod_pow(mut base:BigUint, mut exp:BigUint, modulus:BigUint) -> BigUint {
 //      - input n: u32 number of bits
 //      - returns random integer: u128
 //
-pub fn n_bit_random(n:u32) -> BigUint {
+pub fn n_bit_random(n:&u32) -> BigUint {
     let two = BigUint::from(2u32);
     let mut rng = rand::thread_rng();
     // returns a random number between 2^(n-1)+1 and 2^(n)-1
     let low = two.pow(n-1)+1.to_biguint().unwrap();
-    let high = two.pow(n)-1.to_biguint().unwrap();
-    let rand_int = rng.gen_biguint_range(&low, &high);
-    //let rand_int = rng.gen_range(low..high);
-    return rand_int
+    let high = two.pow(n.to_owned())-1.to_biguint().unwrap();
+    rng.gen_biguint_range(&low, &high)
 }
 
 /// -generate all primes <= n 
@@ -112,7 +110,7 @@ pub fn sieve_of_eratosthenes(n:usize) -> Vec<BigUint> {
     // start iterating from p=2
     let mut p = 2;
     while p*p <= n {
-        if prime[p] == true {
+        if prime[p] {
             // update all multiples of p >= p^2 
             // numbers which are multiple of p and < p^2 are already marked
             let mut i = p*p;
@@ -126,19 +124,19 @@ pub fn sieve_of_eratosthenes(n:usize) -> Vec<BigUint> {
     // create vector of primes
     let mut primes: Vec<BigUint> = Vec::new();
     // append if prime
-    for i in 0..prime.len() {
-        if prime[i] {
+    for (i, val) in prime.iter().enumerate() {
+        if *val {
             primes.push(i.try_into().unwrap());
         }
     }
-    return primes; 
+    primes
 } 
 
 // - generate a prime candidate divisible by first primes 
 //      - input n: u32 number of bits
 //      - return prime number: usize
 //
-fn get_low_level_prime(n:u32, first_primes: &Vec<BigUint>) -> BigUint {
+fn get_low_level_prime(n:&u32, first_primes: &[BigUint]) -> BigUint {
     let zero = BigUint::from(0u32);
     loop {
         let prime_candidate = n_bit_random(n);
@@ -152,29 +150,32 @@ fn get_low_level_prime(n:u32, first_primes: &Vec<BigUint>) -> BigUint {
     }
 }
 
-fn trial_composite(round_tester:BigUint, max_divisions_by_2:u32, even_component:BigUint, miller_rabin_candidate: BigUint) -> bool {
+fn trial_composite(
+    round_tester: BigUint, 
+    max_divisions_by_2: u32, 
+    even_component: BigUint, 
+    miller_rabin_candidate: BigUint
+) -> bool {
     let one = BigUint::from(1u32);
     let two = BigUint::from(2u32);
-    // <<<<<<TODO >>> pass args to mod_pow by reference>>>>>>
-    let _round_tester = round_tester.clone();
-    let _max_divisions_by_2 = max_divisions_by_2.clone();
-    let _even_component = even_component.clone();
-    let _miller_rabin_candidate = miller_rabin_candidate.clone();
-    let base = round_tester.clone();
-    let exp = even_component.clone();
-    let modulus = miller_rabin_candidate.clone();
-    if mod_pow(base, exp, modulus) == one {
+    if mod_pow(
+        round_tester.clone(), 
+        even_component.clone(), 
+        miller_rabin_candidate.clone()
+    ) == one {
         return false;
     }
     for i in 0..max_divisions_by_2 {
-        let base = _round_tester.clone();
-        let exp = two.pow(i) * _even_component.clone();
-        let modulus = _miller_rabin_candidate.clone();
-        if mod_pow(base, exp, modulus) == &miller_rabin_candidate - &one {
+        let exp = two.pow(i) * &even_component;
+        if mod_pow(
+            round_tester.clone(), 
+            exp, 
+            miller_rabin_candidate.clone()
+        ) == &miller_rabin_candidate - &one {
             return false;
         }
     }
-    return true;
+    true
 }
 
 
@@ -197,15 +198,23 @@ fn miller_rabin(miller_rabin_candidate: &BigUint) -> bool {
     // set number of primes here
     let number_of_rabin_trials = 20;
     for _i in 0..number_of_rabin_trials {
-        let round_tester = rng.gen_biguint_range(&two, miller_rabin_candidate);
-        if trial_composite(round_tester, max_divisions_by_2.clone(), even_component.clone(), miller_rabin_candidate.clone()) {
+        let round_tester = rng.gen_biguint_range(
+            &two, 
+            miller_rabin_candidate
+        );
+        if trial_composite(
+            round_tester, 
+            max_divisions_by_2, 
+            even_component.clone(), 
+            miller_rabin_candidate.clone()
+        ) {
             return false;
         }
     }
-    return true;
+    true
 }
 
-pub fn get_n_bit_random_prime(n:u32, first_primes: &Vec<BigUint>) -> BigUint {
+pub fn get_n_bit_random_prime(n:&u32, first_primes: &[BigUint]) -> BigUint {
     loop {
         let miller_rabin_candidate = get_low_level_prime(n, first_primes);
         if !miller_rabin(&miller_rabin_candidate) {
@@ -218,14 +227,16 @@ pub fn get_n_bit_random_prime(n:u32, first_primes: &Vec<BigUint>) -> BigUint {
 
 /// Calls get_n_bit_random_prime on n_threads.
 /// Returns value from first thread finished
-pub fn thread_get_n_bit_random_prime(n:u32, n_threads:u32, first_primes: &Vec<BigUint>) -> BigUint {
+pub fn thread_get_n_bit_random_prime(n:&u32, n_threads:u32, first_primes: &Vec<BigUint>) -> BigUint {
     let (tx, rx) = mpsc::channel();
+    let n = n.to_owned();
+    let first_primes = first_primes.to_owned();
     for _ in 0..n_threads {
         let tx = tx.clone();
-        let n = n.clone();
-        let first_primes = first_primes.clone();
+        let n = n.to_owned();
+        let first_primes = first_primes.to_owned();
         thread::spawn(move || {
-            let res = get_n_bit_random_prime(n, &first_primes);
+            let res = get_n_bit_random_prime(&n, &first_primes);
             tx.send(res).unwrap();
         });
     }
@@ -264,7 +275,8 @@ mod tests {
     #[test]
     fn test_get_n_bit_random_prime() {
         let first_primes = sieve_of_eratosthenes(1000);
-        let p = get_n_bit_random_prime(32, &first_primes);
+        let n = 32u32;
+        let p = get_n_bit_random_prime(&n, &first_primes);
         dbg!(&p);
         // this can get very computationally heavy for larger numbers
         //assert_eq!(true, is_prime(p));
@@ -273,7 +285,8 @@ mod tests {
     #[test]
     fn test_thread_get_n_bit_random_prime() {
         let first_primes = sieve_of_eratosthenes(1000);
-        let p = thread_get_n_bit_random_prime(32, 4, &first_primes);
+        let n = 32u32;
+        let p = thread_get_n_bit_random_prime(&n, 4, &first_primes);
         dbg!(&p);
         // this can get very computationally heavy for larger numbers
         //assert_eq!(true, is_prime(p));

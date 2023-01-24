@@ -18,6 +18,6 @@ pub fn encrypt_string(s:&String, public_key:&PublicKey) -> Vec<BigUint> {
         let enc_byte: BigUint = mod_pow(base, public_exponent.clone(), modulus.clone());
         encrypted_bytes.push(enc_byte);
     }
-    return encrypted_bytes;
+    encrypted_bytes
 }
 

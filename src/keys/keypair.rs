@@ -4,7 +4,7 @@ use std::thread;
 use serde::{Deserialize, Serialize};
 use num_bigint::BigUint;
 
-use crate::utils::math::{get_n_bit_random_prime, get_d};
+use crate::utils::math::{get_n_bit_random_prime, get_d, sieve_of_eratosthenes};
 use crate::utils::io::cached_primes;
 
 
@@ -26,14 +26,45 @@ pub struct PrivateKey {
     modulus: BigUint,
 }
 
+pub struct KeyPairError (KeyPairErrorKind);
+
+
+pub enum KeyPairErrorKind {
+    TIMEOUT,
+}
+
+impl Default for KeyPair {
+    fn default() -> Self {
+        Self::new()    
+    }
+}
+
 impl KeyPair {
+    pub fn new() -> Self {
+        todo!()
+    }
+
+    pub fn try_generate_key_pair(bits: &u32) -> Self {
+        let e = BigUint::from(65537u32);
+        let first_primes = sieve_of_eratosthenes(100000);
+        let first_primes = first_primes.as_slice();
+        let p = get_n_bit_random_prime(bits, first_primes);
+        let q = get_n_bit_random_prime(bits, first_primes);
+        let n = &p * &q;
+        let one = BigUint::from(1u32);
+        let phi: BigUint = (&p-&one)*(&q-&one);
+        let d = get_d(phi, e.clone());
+
+        Self::from(e, d, n)
+    }
+
     // - generates rsa public-private keypair 
     // - input fermat number e 
     // - returns KeyPair
     //<<<<<TODO>>>Take e by reference>>>>>
     pub fn generate_key_pair(e:BigUint, bits: u32) -> KeyPair {
         let one = BigUint::from(1u32);
-        let first_primes = cached_primes();
+        let first_primes = cached_primes("primelist.txt");
         let (tx, rx) = mpsc::channel();
 
         loop {
@@ -42,10 +73,10 @@ impl KeyPair {
             let tx2 = tx.clone();
             // spawn a thread to calculate p
             thread::spawn(move || {
-                let p:BigUint = get_n_bit_random_prime(bits.clone(), &first_primes1);
+                let p:BigUint = get_n_bit_random_prime(&bits, &first_primes1);
                 tx1.send(p).unwrap();
             });
-            let q: BigUint = get_n_bit_random_prime(bits.clone(), &first_primes);
+            let q: BigUint = get_n_bit_random_prime(&bits, &first_primes);
             let _q = q.clone();
             let p = rx.recv().unwrap();
             let _p = p.clone();
@@ -66,24 +97,25 @@ impl KeyPair {
     }
     
     pub fn public_key(&self) -> &PublicKey {
-        return &self.public_key;
+        &self.public_key
     }
 
     pub fn private_key(&self) -> &PrivateKey {
-        return &&self.private_key;
+        &self.private_key
     }
 
     pub fn from(e:BigUint, d:BigUint, n:BigUint) -> KeyPair {
         let public_key = PublicKey{public_exponent: e, modulus: n.clone()};
-        let private_key = PrivateKey{private_exponent: d, modulus: n.clone()};
-        return KeyPair{public_key, private_key};
+        let private_key = PrivateKey{private_exponent: d, modulus: n};
+        
+        Self { public_key, private_key }
     }
 }
 
 impl PublicKey {
     
     pub fn public_exponent(&self) -> &BigUint {
-        return &self.public_exponent;
+        &self.public_exponent
     }
 
     pub fn public_exponent_clone(&self) -> BigUint {
@@ -91,7 +123,7 @@ impl PublicKey {
     }
 
     pub fn modulus(&self) -> &BigUint {
-        return &self.modulus;
+        &self.modulus
     }
 
     pub fn modulus_clone(&self) -> BigUint {
@@ -111,6 +143,8 @@ impl PrivateKey {
 
 #[cfg(test)]
 mod tests {
+    use crate::utils::math::sieve_of_eratosthenes;
+
     use super::KeyPair;
     use num_bigint::BigUint;
 
@@ -120,5 +154,12 @@ mod tests {
         dbg!(key);
     }
 
-}
+    #[test]
+    fn debug_generate_key_pair() {
+        let e = BigUint::from(65537u32);
+        let bits = 256u32;
+        let first_primes = sieve_of_eratosthenes(100000);
 
+    }
+
+}

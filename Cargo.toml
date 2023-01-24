@@ -19,9 +19,5 @@ num-iter = "0.1"
 criterion = { version = "0.3", features = ["html_reports"] }
 
 [[bench]]
-name = "keygen"
-harness = false
-
-[[bench]]
-name = "primegen"
+name = "bench_lib"
 harness = false
