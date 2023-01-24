@@ -143,7 +143,9 @@ impl PrivateKey {
 
 #[cfg(test)]
 mod tests {
-    use crate::utils::math::sieve_of_eratosthenes;
+    use std::{sync::mpsc, thread, time::Instant};
+
+    use crate::utils::math::{sieve_of_eratosthenes, get_n_bit_random_prime, get_d};
 
     use super::KeyPair;
     use num_bigint::BigUint;
@@ -156,9 +158,54 @@ mod tests {
 
     #[test]
     fn debug_generate_key_pair() {
+        let one = BigUint::from(1u32);
         let e = BigUint::from(65537u32);
-        let bits = 256u32;
+        let bits = 1024u32;
         let first_primes = sieve_of_eratosthenes(100000);
+        
+        let (tx, rx) = mpsc::channel();
+
+        let t0 = Instant::now();
+
+        let mut loop_num = 0;
+
+        let key_pair = loop {
+            loop_num += 1;
+            println!("loop_num: {}", &loop_num);
+            let t0 = Instant::now();
+            let first_primes1 = first_primes.clone();
+            let tx1 = tx.clone();
+            let tx2 = tx.clone();
+            // spawn a thread to calculate p
+            thread::spawn(move || {
+                let p:BigUint = get_n_bit_random_prime(&bits, &first_primes1);
+                tx1.send(p).unwrap();
+            });
+            let q: BigUint = get_n_bit_random_prime(&bits, &first_primes);
+            let _q = q.clone();
+            let p = rx.recv().unwrap();
+            let _p = p.clone();
+            // spawn a thread to calculate n
+            thread::spawn(move || {
+                let n: BigUint = _p*_q;
+                tx2.send(n).unwrap();
+            });
+            let phi: BigUint = (&p-&one)*(&q-&one);
+            let d: BigUint = get_d(phi, e.clone());
+            let n = rx.recv().unwrap();
+            let t1 = Instant::now();
+            let t = t1 - t0;
+            if d < BigUint::from(std::u32::MAX) {
+                println!("loop_time: {:#?}", &t);
+                continue;
+            }
+            println!("loop_time: {:#?}", t);
+            break KeyPair::from(e, d, n);
+        };
+
+        let t1 = Instant::now();
+        let t = t1 - t0;
+        println!("KeyPair: {:?} \nGenerated in {:#?}", key_pair, t);
 
     }
 
