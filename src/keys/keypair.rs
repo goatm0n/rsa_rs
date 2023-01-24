@@ -143,7 +143,7 @@ impl PrivateKey {
 
 #[cfg(test)]
 mod tests {
-    use std::{sync::mpsc, thread, time::Instant};
+    use std::{time::Instant};
 
     use crate::utils::math::{sieve_of_eratosthenes, get_n_bit_random_prime, get_d};
 
@@ -162,8 +162,6 @@ mod tests {
         let e = BigUint::from(65537u32);
         let bits = 1024u32;
         let first_primes = sieve_of_eratosthenes(100000);
-        
-        let (tx, rx) = mpsc::channel();
 
         let t0 = Instant::now();
 
@@ -173,26 +171,37 @@ mod tests {
             loop_num += 1;
             println!("loop_num: {}", &loop_num);
             let t0 = Instant::now();
-            let first_primes1 = first_primes.clone();
-            let tx1 = tx.clone();
-            let tx2 = tx.clone();
-            // spawn a thread to calculate p
-            thread::spawn(move || {
-                let p:BigUint = get_n_bit_random_prime(&bits, &first_primes1);
-                tx1.send(p).unwrap();
-            });
+
+            let t_p_0 = Instant::now();
+            let p:BigUint = get_n_bit_random_prime(&bits, &first_primes);
+            let t_p_1 = Instant::now();
+            let t_p = t_p_1 - t_p_0;
+            println!("t_p: {:#?}", t_p);
+
+            let t_q_0 = Instant::now();
             let q: BigUint = get_n_bit_random_prime(&bits, &first_primes);
-            let _q = q.clone();
-            let p = rx.recv().unwrap();
-            let _p = p.clone();
-            // spawn a thread to calculate n
-            thread::spawn(move || {
-                let n: BigUint = _p*_q;
-                tx2.send(n).unwrap();
-            });
+            let t_q_1 = Instant::now();
+            let t_q = t_q_1 - t_q_0;
+            println!("t_q: {:#?}", t_q);
+
+            let t_n_0 = Instant::now();
+            let n: BigUint = &p*&q;
+            let t_n_1 = Instant::now();
+            let t_n = t_n_1 - t_n_0;
+            println!("t_n: {:#?}", t_n);
+    
+            let t_phi_0 = Instant::now();
             let phi: BigUint = (&p-&one)*(&q-&one);
+            let t_phi_1 = Instant::now();
+            let t_phi = t_phi_1 - t_phi_0;
+            println!("t_phi: {:#?}", t_phi);
+
+            let t_get_d_0 = Instant::now();
             let d: BigUint = get_d(phi, e.clone());
-            let n = rx.recv().unwrap();
+            let t_get_d_1 = Instant::now();
+            let t_get_d = t_get_d_1 - t_get_d_0;
+            println!("get_d_time: {:#?}", t_get_d);
+
             let t1 = Instant::now();
             let t = t1 - t0;
             if d < BigUint::from(std::u32::MAX) {

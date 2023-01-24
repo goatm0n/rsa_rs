@@ -246,13 +246,17 @@ pub fn thread_get_n_bit_random_prime(n:&u32, n_threads:u32, first_primes: &Vec<B
 
 #[cfg(test)]
 mod tests {
-    use num_bigint::BigUint;
+    use std::time::Instant;
+
+    use num_bigint::{BigUint, RandBigInt};
+
+    use crate::utils::math::trial_composite;
 
     use super::{
         sieve_of_eratosthenes,
         is_prime,
         get_n_bit_random_prime,
-        thread_get_n_bit_random_prime,
+        thread_get_n_bit_random_prime, get_low_level_prime, miller_rabin,
     };
     #[test]
     fn unit_test_is_prime_true() {
@@ -297,6 +301,123 @@ mod tests {
         let p = concurrently_get_n_bit_random_prime(32);
         assert_eq!(true, is_prime(p)); 
     } */
+
+    #[test]
+    fn debug_get_n_bit_random_prime() {
+        let n: &u32 = &1024;
+        let binding = sieve_of_eratosthenes(100000);
+        let first_primes = binding.as_slice();
+
+        let mut loop_num = 0;
+        let t_p_0 = Instant::now();
+        let p = loop {
+            loop_num += 1;
+            println!("loop_num: {}", loop_num);
+            let t_loop_0 = Instant::now();
+
+            let t_get_p_0 = Instant::now();
+            let miller_rabin_candidate = get_low_level_prime(n, first_primes);
+            let t_get_p_1 = Instant::now();
+            let t_get_p = t_get_p_1 - t_get_p_0;
+            println!("t_get_p: {:#?}", t_get_p);
+
+            let t_miller_0 = Instant::now();
+            let miller_rabin = miller_rabin(&miller_rabin_candidate);
+            let t_miller_1 = Instant::now();
+            let t_miller = t_miller_1 - t_miller_0;
+            println!("t_miller: {:#?}", t_miller);
+
+            let t_loop_1= Instant::now();
+            let t_loop = t_loop_1 - t_loop_0;
+            println!("t_loop: {:#?}", t_loop);
+        
+            if !miller_rabin {
+                continue;
+            } else {
+                break miller_rabin_candidate;
+            }
+        };
+        let t_p_1 = Instant::now();
+        let t_p = t_p_1 - t_p_0;
+        println!("p: {} \nGenerated in: {:#?}", p, t_p);
+    }
+
+    #[test]
+    fn debug_miller_rabin() {
+        let miller_rabin_candidate = &BigUint::from(669544539825604973674715208601u128);
+
+        let t0 = Instant::now();
+
+        let one = BigUint::from(1u32);
+        let two = BigUint::from(2u32);
+        let zero = BigUint::from(0u32);
+
+        let mut max_divisions_by_2 = 0;
+        let mut even_component = miller_rabin_candidate - &one;
+        let mut rng = rand::thread_rng(); 
+
+        let t_while_loop_0 = Instant::now();
+        while &even_component % &two == zero {
+            even_component >>= 1;
+            max_divisions_by_2 += 1;
+        }
+        let t_while_loop_1 = Instant::now();
+        let t_while_loop = t_while_loop_1 - t_while_loop_0;
+        println!("t_while_loop: {:#?}", t_while_loop);
+
+        let t_primality_tests_0 = Instant::now();
+        // primality tests do not delete
+        let test1 = two.pow(max_divisions_by_2) * &even_component;
+        let test2 = miller_rabin_candidate - &one;
+        assert_eq!(test1, test2);
+        let t_primality_tests_1 = Instant::now();
+        let t_primality_tests = t_primality_tests_1 - t_primality_tests_0;
+        println!("t_primality_tests: {:#?}", t_primality_tests);
+
+        // set number of primes here
+        let number_of_rabin_trials = 20;
+
+        let mut res = true;
+
+        let mut for_loop_iter = 0;
+        let t_for_loop_0 = Instant::now();
+        for _i in 0..number_of_rabin_trials {
+            for_loop_iter += 1;
+            println!("for_loop_iter: {:#?}", &for_loop_iter);
+            let t_for_loop_iter_0 = Instant::now();
+
+            let round_tester = rng.gen_biguint_range(
+                &two, 
+                miller_rabin_candidate
+            );
+            if trial_composite(
+                round_tester, 
+                max_divisions_by_2, 
+                even_component.clone(), 
+                miller_rabin_candidate.clone()
+            ) {
+                res = false;
+                let t_for_loop_iter_1 = Instant::now();
+                let t_for_loop_iter = t_for_loop_iter_1 - t_for_loop_iter_0;
+                println!("t_for_loop_iter: {:#?}", t_for_loop_iter);
+                let t1 = Instant::now();
+                let t = t0 - t1;
+                println!("Result: {}\nTime: {:#?}", res, t);
+                return;
+            }
+            let t_for_loop_iter_1 = Instant::now();
+            let t_for_loop_iter = t_for_loop_iter_1 - t_for_loop_iter_0;
+            println!("t_for_loop_iter: {:#?}", &t_for_loop_iter);
+        }
+        let t_for_loop_1 = Instant::now();
+        let t_for_loop = t_for_loop_1 - t_for_loop_0;
+        println!("t_for_loop: {:#?}", t_for_loop);
+
+        let t1 = Instant::now();
+        let t = t1 - t0;
+        println!("Result: {}\nTime: {:#?}", res, t);
+        return;
+    }
 
 }
 

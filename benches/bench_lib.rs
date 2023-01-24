@@ -18,7 +18,7 @@ use rsa_rs::{
 #[allow(dead_code)]
 fn bench_key_gen(c: &mut Criterion) {
     let mut group = c.benchmark_group("key_gen_group");
-    let bits = black_box(1024u32);
+    let bits = black_box(256u32);
     let e = black_box(BigUint::from(65537u32)); 
     group.significance_level(0.1).sample_size(10);
     group.bench_function(
