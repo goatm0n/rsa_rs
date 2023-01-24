@@ -256,7 +256,7 @@ mod tests {
         sieve_of_eratosthenes,
         is_prime,
         get_n_bit_random_prime,
-        thread_get_n_bit_random_prime, get_low_level_prime, miller_rabin,
+        thread_get_n_bit_random_prime, get_low_level_prime, miller_rabin, mod_pow,
     };
     #[test]
     fn unit_test_is_prime_true() {
@@ -386,16 +386,39 @@ mod tests {
             println!("for_loop_iter: {:#?}", &for_loop_iter);
             let t_for_loop_iter_0 = Instant::now();
 
+            let t_gen_biguint_0 = Instant::now();
             let round_tester = rng.gen_biguint_range(
                 &two, 
                 miller_rabin_candidate
             );
-            if trial_composite(
+            let t_gen_biguint_1 = Instant::now();
+            let t_gen_biguint = t_gen_biguint_1 - t_gen_biguint_0;
+            println!("t_gen_biguint: {:#?}", t_gen_biguint);
+
+            println!(
+                "trail_composite args:\n\t
+                round_tester: {}\n\t
+                max_divisions_by_2: {}\n\t
+                even_component: {}\n\t
+                miller_rabin_candidate: {}", 
+                &round_tester, 
+                &max_divisions_by_2, 
+                &even_component, 
+                &miller_rabin_candidate
+            );
+
+            let t_trial_composite_0 = Instant::now();
+            let trial_composite = trial_composite(
                 round_tester, 
                 max_divisions_by_2, 
                 even_component.clone(), 
                 miller_rabin_candidate.clone()
-            ) {
+            );
+            let t_trial_composite_1 = Instant::now();
+            let t_trial_composite = t_trial_composite_1 - t_trial_composite_0;
+            println!("t_trial_composite: {:#?}", t_trial_composite);
+
+            if trial_composite {
                 res = false;
                 let t_for_loop_iter_1 = Instant::now();
                 let t_for_loop_iter = t_for_loop_iter_1 - t_for_loop_iter_0;
@@ -418,6 +441,66 @@ mod tests {
         println!("Result: {}\nTime: {:#?}", res, t);
         return;
     }
+
+    #[test]
+    fn debug_trial_composite() {
+        let round_tester:BigUint = BigUint::from(439384002558036958644382685821u128); 
+        let max_divisions_by_2: u32 = 3; 
+        let even_component: BigUint = BigUint::from(83693067478200621709339401075u128);
+        let miller_rabin_candidate: BigUint = BigUint::from(669544539825604973674715208601u128);
+
+        let one = BigUint::from(1u32);
+        let two = BigUint::from(2u32);
+
+        let t0 = Instant::now();
+
+        let mut res = true;
+
+        let t_mod_pow_even_0 = Instant::now();
+        let mod_pow_even = mod_pow(
+            round_tester.clone(), 
+            even_component.clone(), 
+            miller_rabin_candidate.clone()
+        );
+        let t_mod_pow_even_1 = Instant::now();
+        let t_mod_pow_even = t_mod_pow_even_1 - t_mod_pow_even_0;
+        println!("t_mod_pow_even: {:#?}", t_mod_pow_even);
+
+        if mod_pow_even == one {
+            res = false;
+            let t1 = Instant::now();
+            let t = t1 - t0;
+            println!("Result: {}\nTime: {:#?}", res, t);
+            return;
+        }
+        for i in 0..max_divisions_by_2 {
+            let exp = two.pow(i) * &even_component;
+
+            let t_mod_pow_exp_0 = Instant::now();
+            let mod_pow_exp = mod_pow(
+                round_tester.clone(), 
+                exp, 
+                miller_rabin_candidate.clone()
+            );
+            let t_mod_pow_exp_1 = Instant::now();
+            let t_mod_pow_exp = t_mod_pow_exp_1 - t_mod_pow_exp_0;
+            println!("t_mod_pow_exp: {:#?}", t_mod_pow_exp);
+
+            if mod_pow_exp == &miller_rabin_candidate - &one {
+                res = false;
+                let t1 = Instant::now();
+                let t = t1 - t0;    
+                println!("Result: {}\nTime: {:#?}", res, t);
+                return;
+            }
+        }
+        println!("Result: {}", res);
+    }
+
+    #[test]
+    fn debug_mod_pow() {
+        
+    }    
 
 }
 
