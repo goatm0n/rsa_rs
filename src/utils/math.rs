@@ -499,8 +499,39 @@ mod tests {
 
     #[test]
     fn debug_mod_pow() {
-        
-    }    
+        let mut base: BigUint = BigUint::from(439384002558036958644382685821u128); 
+        let mut exp: BigUint = BigUint::from(83693067478200621709339401075u128); 
+        let modulus: BigUint = BigUint::from(669544539825604973674715208601u128);
+
+        let zero = BigUint::from(0u32);
+        let one = BigUint::from(1u32);
+        let two = BigUint::from(2u32);
+
+        if modulus == one {
+            println!("Result: {}", two);
+            return;
+        }
+        let mut result = one.clone();
+
+        let mut while_loop_iter = 0;
+        let t0 = Instant::now();
+        base %= &modulus;
+        while exp > zero {
+            while_loop_iter += 1;
+            let t_while_loop_iter_0 = Instant::now();
+            if &exp % &two == one {
+                result = &result * &base % &modulus;
+            }
+            exp >>= 1;
+            base = &base * &base % &modulus;
+            let t_while_loop_iter_1 = Instant::now();
+            let t_while_loop_iter = t_while_loop_iter_1 - t_while_loop_iter_0;
+            println!("while_loop_iter: {}\nt_while_loop_iter: {:#?}", while_loop_iter, t_while_loop_iter);
+        }
+        let t1 = Instant::now();
+        let t = t1 - t0;
+        println!("Result: {}\nTime: {:#?}", result, t);
+    } 
 
 }
 
