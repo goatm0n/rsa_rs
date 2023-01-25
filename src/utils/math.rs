@@ -533,6 +533,27 @@ mod tests {
         println!("Result: {}\nTime: {:#?}", result, t);
     } 
 
+    #[test]
+    fn assert_eq_mod_pow() {
+        let base = BigUint::from(439384002558036958644382685821u128); 
+        let exp: BigUint = BigUint::from(83693067478200621709339401075u128); 
+        let modulus: BigUint = BigUint::from(669544539825604973674715208601u128);
+        let t0 = Instant::now();
+        let res1 = mod_pow(base.clone(), exp.clone(), modulus.clone());
+        let t1 = Instant::now();
+        let t = t1 - t0;
+        println!("t1: {:#?}", t);
+
+        let t0 = Instant::now();
+        let res2 = BigUint::modpow(&base, &exp, &modulus);
+        let t1 = Instant::now();
+        let t = t1 - t0;
+        println!("t2: {:#?}", t);
+
+        assert_eq!(res1, res2);
+    }
+
+
 }
 
 

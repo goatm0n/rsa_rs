@@ -9,7 +9,7 @@ use num_bigint::BigUint;
 extern crate rsa_rs;
 use rsa_rs::{
     utils::{
-        math::sieve_of_eratosthenes,
+        math::{sieve_of_eratosthenes, mod_pow},
         io::cached_primes
     },
     keys::keypair::KeyPair
@@ -44,5 +44,29 @@ fn bench_sieve_of_eratosthenes(c: &mut Criterion) {
     );
 }
 
-criterion_group!(benches, bench_key_gen);
+#[allow(dead_code)]
+fn bench_mod_pow(c: &mut Criterion) {
+    c.bench_function(
+        "mod_pow", 
+        |b| b.iter( || mod_pow(
+            BigUint::from(439384002558036958644382685821123u128), 
+            BigUint::from(83693067478200621709339401075123u128), 
+            BigUint::from(669544539825604973674715208601123u128)
+        ))
+    );
+}
+
+#[allow(dead_code)]
+fn bench_biguint_mod_pow(c: &mut Criterion) {
+    c.bench_function(
+        "biguint_mod_pow", 
+        |b| b.iter(|| BigUint::modpow(
+            &BigUint::from(439384002558036958644382685821123u128), 
+            &BigUint::from(83693067478200621709339401075123u128), 
+            &BigUint::from(669544539825604973674715208601123u128)
+        ))
+    );
+}
+
+criterion_group!(benches, bench_mod_pow, bench_biguint_mod_pow);
 criterion_main!(benches);
