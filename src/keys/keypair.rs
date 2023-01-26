@@ -4,7 +4,7 @@ use std::thread;
 use serde::{Deserialize, Serialize};
 use num_bigint::BigUint;
 
-use crate::utils::math::{get_n_bit_random_prime, get_d, sieve_of_eratosthenes};
+use crate::utils::math::{get_n_bit_random_prime, get_d, sieve_of_eratosthenes, get_n_bit_random_prime_biguint_modpow};
 use crate::utils::io::cached_primes;
 
 
@@ -77,6 +77,40 @@ impl KeyPair {
                 tx1.send(p).unwrap();
             });
             let q: BigUint = get_n_bit_random_prime(&bits, &first_primes);
+            let _q = q.clone();
+            let p = rx.recv().unwrap();
+            let _p = p.clone();
+            // spawn a thread to calculate n
+            thread::spawn(move || {
+                let n: BigUint = _p*_q;
+                tx2.send(n).unwrap();
+            });
+            let phi: BigUint = (&p-&one)*(&q-&one);
+            let d: BigUint = get_d(phi, e.clone());
+            let n = rx.recv().unwrap();
+            if d < BigUint::from(std::u32::MAX) {
+                continue;
+            }
+            let key_pair = KeyPair::from(e, d, n);
+            break key_pair
+        }
+    }
+
+    pub fn generate_key_pair_biguint_modpow(e:BigUint, bits: u32) -> KeyPair {
+        let one = BigUint::from(1u32);
+        let first_primes = cached_primes("primelist.txt");
+        let (tx, rx) = mpsc::channel();
+
+        loop {
+            let first_primes1 = first_primes.clone();
+            let tx1 = tx.clone();
+            let tx2 = tx.clone();
+            // spawn a thread to calculate p
+            thread::spawn(move || {
+                let p:BigUint = get_n_bit_random_prime_biguint_modpow(&bits, &first_primes1);
+                tx1.send(p).unwrap();
+            });
+            let q: BigUint = get_n_bit_random_prime_biguint_modpow(&bits, &first_primes);
             let _q = q.clone();
             let p = rx.recv().unwrap();
             let _p = p.clone();

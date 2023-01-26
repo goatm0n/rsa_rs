@@ -27,12 +27,25 @@ use rsa_rs::{
 #[allow(dead_code)]
 fn bench_key_gen(c: &mut Criterion) {
     let mut group = c.benchmark_group("key_gen_group");
-    let bits = black_box(256u32);
+    let bits = black_box(1024u32);
     let e = black_box(BigUint::from(65537u32)); 
     group.significance_level(0.1).sample_size(10);
     group.bench_function(
         "key_gen",
         |b| b.iter(|| KeyPair::generate_key_pair(e.clone(), bits))
+    );
+    group.finish();
+}
+
+#[allow(dead_code)]
+fn bench_key_gen_biguint_modpow(c: &mut Criterion) {
+    let mut group = c.benchmark_group("key_gen_group");
+    let bits = black_box(1024u32);
+    let e = black_box(BigUint::from(65537u32)); 
+    group.significance_level(0.1).sample_size(10);
+    group.bench_function(
+        "key_gen_biguint_modpow",
+        |b| b.iter(|| KeyPair::generate_key_pair_biguint_modpow(e.clone(), bits))
     );
     group.finish();
 }
@@ -157,5 +170,5 @@ fn bench_get_n_bit_random_prime_biguint_modpow(c: &mut Criterion) {
     );
 }
 
-criterion_group!(benches, bench_get_n_bit_random_prime, bench_get_n_bit_random_prime_biguint_modpow);
+criterion_group!(benches, bench_key_gen, bench_key_gen_biguint_modpow);
 criterion_main!(benches);
