@@ -4,7 +4,7 @@ use std::sync::mpsc;
 
 pub fn extended_euclidian(a:BigUint, b:BigUint) -> (BigUint, BigInt, BigInt) {
     if a == BigUint::from(0u32) {
-        return (b, BigInt::from(0u32), BigInt::from(1u32)) 
+        (b, BigInt::from(0u32), BigInt::from(1u32)) 
     }
     else {
         // unenjoyable >>> TODO >>> use references for extended_euclidian
@@ -17,7 +17,7 @@ pub fn extended_euclidian(a:BigUint, b:BigUint) -> (BigUint, BigInt, BigInt) {
         let (g, x, y) = extended_euclidian(b%&a, a);
         // some fuckery
 
-        return (g, y-(_b/_a)*&x, x) 
+        (g, y-(_b/_a)*&x, x) 
     }
 }
 
@@ -34,21 +34,21 @@ pub fn is_prime(p:BigUint) -> bool {
             return false;
         } 
     }
-    return true;
+    true
 }
 
 /// returns true if p, q coprime;
 /// 
 /// 
 pub fn is_coprime(p:u128, q:u128) -> bool {
-    return gcd(p, q) == 1; 
+    gcd(p, q) == 1
 }
 
 fn gcd(p:u128, q:u128) -> u128 {
     if p == 0 {
         return q;
     }
-    return gcd(q % p, p);
+    gcd(q % p, p)
 }
 
 pub fn get_d(phi:BigUint, e:BigUint) -> BigUint {
@@ -61,7 +61,7 @@ pub fn get_d(phi:BigUint, e:BigUint) -> BigUint {
     }
     assert!(d >= BigInt::from(0u32));
     let _d: BigUint = d.clone().try_into().unwrap();
-    return _d
+    _d
 }
 
 pub fn mod_pow(mut base:BigUint, mut exp:BigUint, modulus:BigUint) -> BigUint {
@@ -72,12 +72,12 @@ pub fn mod_pow(mut base:BigUint, mut exp:BigUint, modulus:BigUint) -> BigUint {
         return two;
     }
     let mut result = one.clone();
-    base = base % &modulus;
+    base %= &modulus;
     while exp > zero {
         if &exp % &two == one {
             result = &result * &base % &modulus;
         }
-        exp = exp >> 1;
+        exp >>= 1;
         base = &base * &base % &modulus;
     }
     result 
@@ -87,15 +87,13 @@ pub fn mod_pow(mut base:BigUint, mut exp:BigUint, modulus:BigUint) -> BigUint {
 //      - input n: u32 number of bits
 //      - returns random integer: u128
 //
-pub fn n_bit_random(n:u32) -> BigUint {
+pub fn n_bit_random(n:&u32) -> BigUint {
     let two = BigUint::from(2u32);
     let mut rng = rand::thread_rng();
     // returns a random number between 2^(n-1)+1 and 2^(n)-1
     let low = two.pow(n-1)+1.to_biguint().unwrap();
-    let high = two.pow(n)-1.to_biguint().unwrap();
-    let rand_int = rng.gen_biguint_range(&low, &high);
-    //let rand_int = rng.gen_range(low..high);
-    return rand_int
+    let high = two.pow(n.to_owned())-1.to_biguint().unwrap();
+    rng.gen_biguint_range(&low, &high)
 }
 
 /// -generate all primes <= n 
@@ -112,7 +110,7 @@ pub fn sieve_of_eratosthenes(n:usize) -> Vec<BigUint> {
     // start iterating from p=2
     let mut p = 2;
     while p*p <= n {
-        if prime[p] == true {
+        if prime[p] {
             // update all multiples of p >= p^2 
             // numbers which are multiple of p and < p^2 are already marked
             let mut i = p*p;
@@ -126,19 +124,19 @@ pub fn sieve_of_eratosthenes(n:usize) -> Vec<BigUint> {
     // create vector of primes
     let mut primes: Vec<BigUint> = Vec::new();
     // append if prime
-    for i in 0..prime.len() {
-        if prime[i] {
+    for (i, val) in prime.iter().enumerate() {
+        if *val {
             primes.push(i.try_into().unwrap());
         }
     }
-    return primes; 
+    primes
 } 
 
 // - generate a prime candidate divisible by first primes 
 //      - input n: u32 number of bits
 //      - return prime number: usize
 //
-fn get_low_level_prime(n:u32, first_primes: &Vec<BigUint>) -> BigUint {
+fn get_low_level_prime(n:&u32, first_primes: &[BigUint]) -> BigUint {
     let zero = BigUint::from(0u32);
     loop {
         let prime_candidate = n_bit_random(n);
@@ -152,33 +150,35 @@ fn get_low_level_prime(n:u32, first_primes: &Vec<BigUint>) -> BigUint {
     }
 }
 
-fn trial_composite(round_tester:BigUint, max_divisions_by_2:u32, even_component:BigUint, miller_rabin_candidate: BigUint) -> bool {
+pub fn trial_composite(
+    round_tester: &BigUint, 
+    max_divisions_by_2: u32, 
+    even_component: &BigUint, 
+    miller_rabin_candidate: &BigUint
+) -> bool {
     let one = BigUint::from(1u32);
     let two = BigUint::from(2u32);
-    // <<<<<<TODO >>> pass args to mod_pow by reference>>>>>>
-    let _round_tester = round_tester.clone();
-    let _max_divisions_by_2 = max_divisions_by_2.clone();
-    let _even_component = even_component.clone();
-    let _miller_rabin_candidate = miller_rabin_candidate.clone();
-    let base = round_tester.clone();
-    let exp = even_component.clone();
-    let modulus = miller_rabin_candidate.clone();
-    if mod_pow(base, exp, modulus) == one {
+    if BigUint::modpow(
+        round_tester, 
+        even_component, 
+        miller_rabin_candidate
+    ) == one {
         return false;
     }
     for i in 0..max_divisions_by_2 {
-        let base = _round_tester.clone();
-        let exp = two.pow(i) * _even_component.clone();
-        let modulus = _miller_rabin_candidate.clone();
-        if mod_pow(base, exp, modulus) == &miller_rabin_candidate - &one {
+        let exp = two.pow(i) * even_component;
+        if BigUint::modpow(
+            round_tester,
+            &exp, 
+            miller_rabin_candidate
+        ) == miller_rabin_candidate - &one {
             return false;
         }
     }
-    return true;
+    true
 }
 
-
-fn miller_rabin(miller_rabin_candidate: &BigUint) -> bool {
+pub fn miller_rabin(miller_rabin_candidate: &BigUint) -> bool {
     let one = BigUint::from(1u32);
     let two = BigUint::from(2u32);
     let zero = BigUint::from(0u32);
@@ -197,15 +197,23 @@ fn miller_rabin(miller_rabin_candidate: &BigUint) -> bool {
     // set number of primes here
     let number_of_rabin_trials = 20;
     for _i in 0..number_of_rabin_trials {
-        let round_tester = rng.gen_biguint_range(&two, miller_rabin_candidate);
-        if trial_composite(round_tester, max_divisions_by_2.clone(), even_component.clone(), miller_rabin_candidate.clone()) {
+        let round_tester = rng.gen_biguint_range(
+            &two, 
+            miller_rabin_candidate
+        );
+        if trial_composite(
+            &round_tester, 
+            max_divisions_by_2, 
+            &even_component, 
+            &miller_rabin_candidate
+        ) {
             return false;
         }
     }
-    return true;
+    true
 }
 
-pub fn get_n_bit_random_prime(n:u32, first_primes: &Vec<BigUint>) -> BigUint {
+pub fn get_n_bit_random_prime(n:&u32, first_primes: &[BigUint]) -> BigUint {
     loop {
         let miller_rabin_candidate = get_low_level_prime(n, first_primes);
         if !miller_rabin(&miller_rabin_candidate) {
@@ -218,14 +226,16 @@ pub fn get_n_bit_random_prime(n:u32, first_primes: &Vec<BigUint>) -> BigUint {
 
 /// Calls get_n_bit_random_prime on n_threads.
 /// Returns value from first thread finished
-pub fn thread_get_n_bit_random_prime(n:u32, n_threads:u32, first_primes: &Vec<BigUint>) -> BigUint {
+pub fn thread_get_n_bit_random_prime(n:&u32, n_threads:u32, first_primes: &Vec<BigUint>) -> BigUint {
     let (tx, rx) = mpsc::channel();
+    let n = n.to_owned();
+    let first_primes = first_primes.to_owned();
     for _ in 0..n_threads {
         let tx = tx.clone();
-        let n = n.clone();
-        let first_primes = first_primes.clone();
+        let n = n.to_owned();
+        let first_primes = first_primes.to_owned();
         thread::spawn(move || {
-            let res = get_n_bit_random_prime(n, &first_primes);
+            let res = get_n_bit_random_prime(&n, &first_primes);
             tx.send(res).unwrap();
         });
     }
@@ -235,13 +245,17 @@ pub fn thread_get_n_bit_random_prime(n:u32, n_threads:u32, first_primes: &Vec<Bi
 
 #[cfg(test)]
 mod tests {
-    use num_bigint::BigUint;
+    use std::time::Instant;
+
+    use num_bigint::{BigUint, RandBigInt};
+
+    use crate::utils::math::trial_composite;
 
     use super::{
         sieve_of_eratosthenes,
         is_prime,
         get_n_bit_random_prime,
-        thread_get_n_bit_random_prime,
+        thread_get_n_bit_random_prime, get_low_level_prime, miller_rabin, mod_pow,
     };
     #[test]
     fn unit_test_is_prime_true() {
@@ -264,7 +278,8 @@ mod tests {
     #[test]
     fn test_get_n_bit_random_prime() {
         let first_primes = sieve_of_eratosthenes(1000);
-        let p = get_n_bit_random_prime(32, &first_primes);
+        let n = 32u32;
+        let p = get_n_bit_random_prime(&n, &first_primes);
         dbg!(&p);
         // this can get very computationally heavy for larger numbers
         //assert_eq!(true, is_prime(p));
@@ -273,7 +288,8 @@ mod tests {
     #[test]
     fn test_thread_get_n_bit_random_prime() {
         let first_primes = sieve_of_eratosthenes(1000);
-        let p = thread_get_n_bit_random_prime(32, 4, &first_primes);
+        let n = 32u32;
+        let p = thread_get_n_bit_random_prime(&n, 4, &first_primes);
         dbg!(&p);
         // this can get very computationally heavy for larger numbers
         //assert_eq!(true, is_prime(p));
@@ -284,6 +300,258 @@ mod tests {
         let p = concurrently_get_n_bit_random_prime(32);
         assert_eq!(true, is_prime(p)); 
     } */
+
+    #[test]
+    fn debug_get_n_bit_random_prime() {
+        let n: &u32 = &1024;
+        let binding = sieve_of_eratosthenes(100000);
+        let first_primes = binding.as_slice();
+
+        let mut loop_num = 0;
+        let t_p_0 = Instant::now();
+        let p = loop {
+            loop_num += 1;
+            println!("loop_num: {}", loop_num);
+            let t_loop_0 = Instant::now();
+
+            let t_get_p_0 = Instant::now();
+            let miller_rabin_candidate = get_low_level_prime(n, first_primes);
+            let t_get_p_1 = Instant::now();
+            let t_get_p = t_get_p_1 - t_get_p_0;
+            println!("t_get_p: {:#?}", t_get_p);
+
+            let t_miller_0 = Instant::now();
+            let miller_rabin = miller_rabin(&miller_rabin_candidate);
+            let t_miller_1 = Instant::now();
+            let t_miller = t_miller_1 - t_miller_0;
+            println!("t_miller: {:#?}", t_miller);
+
+            let t_loop_1= Instant::now();
+            let t_loop = t_loop_1 - t_loop_0;
+            println!("t_loop: {:#?}", t_loop);
+        
+            if !miller_rabin {
+                continue;
+            } else {
+                break miller_rabin_candidate;
+            }
+        };
+        let t_p_1 = Instant::now();
+        let t_p = t_p_1 - t_p_0;
+        println!("p: {} \nGenerated in: {:#?}", p, t_p);
+    }
+
+    #[test]
+    fn debug_miller_rabin() {
+        let miller_rabin_candidate = &BigUint::from(669544539825604973674715208601u128);
+
+        let t0 = Instant::now();
+
+        let one = BigUint::from(1u32);
+        let two = BigUint::from(2u32);
+        let zero = BigUint::from(0u32);
+
+        let mut max_divisions_by_2 = 0;
+        let mut even_component = miller_rabin_candidate - &one;
+        let mut rng = rand::thread_rng(); 
+
+        let t_while_loop_0 = Instant::now();
+        while &even_component % &two == zero {
+            even_component >>= 1;
+            max_divisions_by_2 += 1;
+        }
+        let t_while_loop_1 = Instant::now();
+        let t_while_loop = t_while_loop_1 - t_while_loop_0;
+        println!("t_while_loop: {:#?}", t_while_loop);
+
+        let t_primality_tests_0 = Instant::now();
+        // primality tests do not delete
+        let test1 = two.pow(max_divisions_by_2) * &even_component;
+        let test2 = miller_rabin_candidate - &one;
+        assert_eq!(test1, test2);
+        let t_primality_tests_1 = Instant::now();
+        let t_primality_tests = t_primality_tests_1 - t_primality_tests_0;
+        println!("t_primality_tests: {:#?}", t_primality_tests);
+
+        // set number of primes here
+        let number_of_rabin_trials = 20;
+
+        let mut res = true;
+
+        let mut for_loop_iter = 0;
+        let t_for_loop_0 = Instant::now();
+        for _i in 0..number_of_rabin_trials {
+            for_loop_iter += 1;
+            println!("for_loop_iter: {:#?}", &for_loop_iter);
+            let t_for_loop_iter_0 = Instant::now();
+
+            let t_gen_biguint_0 = Instant::now();
+            let round_tester = rng.gen_biguint_range(
+                &two, 
+                miller_rabin_candidate
+            );
+            let t_gen_biguint_1 = Instant::now();
+            let t_gen_biguint = t_gen_biguint_1 - t_gen_biguint_0;
+            println!("t_gen_biguint: {:#?}", t_gen_biguint);
+
+            println!(
+                "trail_composite args:\n\t
+                round_tester: {}\n\t
+                max_divisions_by_2: {}\n\t
+                even_component: {}\n\t
+                miller_rabin_candidate: {}", 
+                &round_tester, 
+                &max_divisions_by_2, 
+                &even_component, 
+                &miller_rabin_candidate
+            );
+
+            let t_trial_composite_0 = Instant::now();
+            let trial_composite = trial_composite(
+                &round_tester, 
+                max_divisions_by_2, 
+                &even_component, 
+                &miller_rabin_candidate
+            );
+            let t_trial_composite_1 = Instant::now();
+            let t_trial_composite = t_trial_composite_1 - t_trial_composite_0;
+            println!("t_trial_composite: {:#?}", t_trial_composite);
+
+            if trial_composite {
+                res = false;
+                let t_for_loop_iter_1 = Instant::now();
+                let t_for_loop_iter = t_for_loop_iter_1 - t_for_loop_iter_0;
+                println!("t_for_loop_iter: {:#?}", t_for_loop_iter);
+                let t1 = Instant::now();
+                let t = t0 - t1;
+                println!("Result: {}\nTime: {:#?}", res, t);
+                return;
+            }
+            let t_for_loop_iter_1 = Instant::now();
+            let t_for_loop_iter = t_for_loop_iter_1 - t_for_loop_iter_0;
+            println!("t_for_loop_iter: {:#?}", &t_for_loop_iter);
+        }
+        let t_for_loop_1 = Instant::now();
+        let t_for_loop = t_for_loop_1 - t_for_loop_0;
+        println!("t_for_loop: {:#?}", t_for_loop);
+
+        let t1 = Instant::now();
+        let t = t1 - t0;
+        println!("Result: {}\nTime: {:#?}", res, t);
+        return;
+    }
+
+    #[test]
+    fn debug_trial_composite() {
+        let round_tester:BigUint = BigUint::from(439384002558036958644382685821u128); 
+        let max_divisions_by_2: u32 = 3; 
+        let even_component: BigUint = BigUint::from(83693067478200621709339401075u128);
+        let miller_rabin_candidate: BigUint = BigUint::from(669544539825604973674715208601u128);
+
+        let one = BigUint::from(1u32);
+        let two = BigUint::from(2u32);
+
+        let t0 = Instant::now();
+
+        let mut res = true;
+
+        let t_mod_pow_even_0 = Instant::now();
+        let mod_pow_even = mod_pow(
+            round_tester.clone(), 
+            even_component.clone(), 
+            miller_rabin_candidate.clone()
+        );
+        let t_mod_pow_even_1 = Instant::now();
+        let t_mod_pow_even = t_mod_pow_even_1 - t_mod_pow_even_0;
+        println!("t_mod_pow_even: {:#?}", t_mod_pow_even);
+
+        if mod_pow_even == one {
+            res = false;
+            let t1 = Instant::now();
+            let t = t1 - t0;
+            println!("Result: {}\nTime: {:#?}", res, t);
+            return;
+        }
+        for i in 0..max_divisions_by_2 {
+            let exp = two.pow(i) * &even_component;
+
+            let t_mod_pow_exp_0 = Instant::now();
+            let mod_pow_exp = mod_pow(
+                round_tester.clone(), 
+                exp, 
+                miller_rabin_candidate.clone()
+            );
+            let t_mod_pow_exp_1 = Instant::now();
+            let t_mod_pow_exp = t_mod_pow_exp_1 - t_mod_pow_exp_0;
+            println!("t_mod_pow_exp: {:#?}", t_mod_pow_exp);
+
+            if mod_pow_exp == &miller_rabin_candidate - &one {
+                res = false;
+                let t1 = Instant::now();
+                let t = t1 - t0;    
+                println!("Result: {}\nTime: {:#?}", res, t);
+                return;
+            }
+        }
+        println!("Result: {}", res);
+    }
+
+    #[test]
+    fn debug_mod_pow() {
+        let mut base: BigUint = BigUint::from(439384002558036958644382685821u128); 
+        let mut exp: BigUint = BigUint::from(83693067478200621709339401075u128); 
+        let modulus: BigUint = BigUint::from(669544539825604973674715208601u128);
+
+        let zero = BigUint::from(0u32);
+        let one = BigUint::from(1u32);
+        let two = BigUint::from(2u32);
+
+        if modulus == one {
+            println!("Result: {}", two);
+            return;
+        }
+        let mut result = one.clone();
+
+        let mut while_loop_iter = 0;
+        let t0 = Instant::now();
+        base %= &modulus;
+        while exp > zero {
+            while_loop_iter += 1;
+            let t_while_loop_iter_0 = Instant::now();
+            if &exp % &two == one {
+                result = &result * &base % &modulus;
+            }
+            exp >>= 1;
+            base = &base * &base % &modulus;
+            let t_while_loop_iter_1 = Instant::now();
+            let t_while_loop_iter = t_while_loop_iter_1 - t_while_loop_iter_0;
+            println!("while_loop_iter: {}\nt_while_loop_iter: {:#?}", while_loop_iter, t_while_loop_iter);
+        }
+        let t1 = Instant::now();
+        let t = t1 - t0;
+        println!("Result: {}\nTime: {:#?}", result, t);
+    } 
+
+    #[test]
+    fn assert_eq_mod_pow() {
+        let base = BigUint::from(43938400255803695864438268582112345u128); 
+        let exp: BigUint = BigUint::from(8369306747820062170933940107512345u128); 
+        let modulus: BigUint = BigUint::from(66954453982560497367471520860112345u128);
+        let t0 = Instant::now();
+        let res1 = mod_pow(base.clone(), exp.clone(), modulus.clone());
+        let t1 = Instant::now();
+        let t = t1 - t0;
+        println!("t1: {:#?}", t);
+
+        let t0 = Instant::now();
+        let res2 = BigUint::modpow(&base, &exp, &modulus);
+        let t1 = Instant::now();
+        let t = t1 - t0;
+        println!("t2: {:#?}", t);
+
+        assert_eq!(res1, res2);
+    }
+
 
 }
 

@@ -1,6 +1,6 @@
 [package]
 name = "rsa_rs"
-version = "0.3.0"
+version = "0.3.1"
 edition = "2021"
 description = "rust rsa library -- UNTESTED HOBBY PROJECT -- DO NOT USE FOR SERIOUS APPLICATIONS"
 repository = "https://github.com/leninRessurect/rsa_rs"
@@ -19,9 +19,8 @@ num-iter = "0.1"
 criterion = { version = "0.3", features = ["html_reports"] }
 
 [[bench]]
-name = "keygen"
+name = "bench_lib"
 harness = false
 
-[[bench]]
-name = "primegen"
-harness = false
+[profile.test]
+opt-level = 3
