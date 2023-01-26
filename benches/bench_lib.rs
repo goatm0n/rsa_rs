@@ -9,7 +9,14 @@ use num_bigint::BigUint;
 extern crate rsa_rs;
 use rsa_rs::{
     utils::{
-        math::{sieve_of_eratosthenes, mod_pow},
+        math::{
+            sieve_of_eratosthenes, 
+            mod_pow, 
+            trial_composite, 
+            trial_composite_biguint_modpow,
+            miller_rabin,
+            miller_rabin_biguint_modpow,
+        },
         io::cached_primes
     },
     keys::keypair::KeyPair
@@ -49,9 +56,9 @@ fn bench_mod_pow(c: &mut Criterion) {
     c.bench_function(
         "mod_pow", 
         |b| b.iter( || mod_pow(
-            BigUint::from(439384002558036958644382685821123u128), 
-            BigUint::from(83693067478200621709339401075123u128), 
-            BigUint::from(669544539825604973674715208601123u128)
+            BigUint::from(43938400255803695864438268582112345u128), 
+            BigUint::from(8369306747820062170933940107512345u128), 
+            BigUint::from(66954453982560497367471520860112345u128)
         ))
     );
 }
@@ -61,12 +68,62 @@ fn bench_biguint_mod_pow(c: &mut Criterion) {
     c.bench_function(
         "biguint_mod_pow", 
         |b| b.iter(|| BigUint::modpow(
-            &BigUint::from(439384002558036958644382685821123u128), 
-            &BigUint::from(83693067478200621709339401075123u128), 
-            &BigUint::from(669544539825604973674715208601123u128)
+            &BigUint::from(43938400255803695864438268582112345u128), 
+            &BigUint::from(8369306747820062170933940107512345u128), 
+            &BigUint::from(66954453982560497367471520860112345u128)
         ))
     );
 }
 
-criterion_group!(benches, bench_mod_pow, bench_biguint_mod_pow);
+#[allow(dead_code)]
+fn bench_trial_composite(c: &mut Criterion) {
+    c.bench_function(
+        "trial_composite", 
+        |b| b.iter(|| trial_composite(
+            BigUint::from(439384002558036958644382685821u128),
+            3,
+            BigUint::from(83693067478200621709339401075u128),
+            BigUint::from(669544539825604973674715208601u128)
+        ))
+    );
+}
+
+#[allow(dead_code)]
+fn bench_trial_composite_biguint_modpow(c: &mut Criterion) {
+    c.bench_function(
+        "trial_composite_biguint_modpow", 
+        |b| b.iter(|| trial_composite_biguint_modpow(
+            &BigUint::from(439384002558036958644382685821u128),
+            3,
+            &BigUint::from(83693067478200621709339401075u128),
+            &BigUint::from(669544539825604973674715208601u128)
+        ))
+    );
+}
+
+#[allow(dead_code)]
+fn bench_miller_rabin(c: &mut Criterion) {
+    let two = BigUint::from(2u32);
+    let miller_rabin_candidate = &BigUint::from(669544539825604973674715208601u128) * two;
+    c.bench_function(
+        "miller_rabin", 
+        |b| b.iter(|| miller_rabin(
+            &miller_rabin_candidate 
+        ))
+    );
+}
+
+#[allow(dead_code)]
+fn bench_miller_rabin_biguint_modpow(c: &mut Criterion) {
+    let two = BigUint::from(2u32);
+    let miller_rabin_candidate = &BigUint::from(669544539825604973674715208601u128) * two;
+    c.bench_function(
+        "miller_rabin_biguint_modpow", 
+        |b| b.iter(|| miller_rabin_biguint_modpow(
+            &miller_rabin_candidate
+        ))
+    );
+}
+
+criterion_group!(benches, bench_miller_rabin, bench_miller_rabin_biguint_modpow);
 criterion_main!(benches);

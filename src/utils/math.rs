@@ -150,7 +150,7 @@ fn get_low_level_prime(n:&u32, first_primes: &[BigUint]) -> BigUint {
     }
 }
 
-fn trial_composite(
+pub fn trial_composite(
     round_tester: BigUint, 
     max_divisions_by_2: u32, 
     even_component: BigUint, 
@@ -178,8 +178,35 @@ fn trial_composite(
     true
 }
 
+pub fn trial_composite_biguint_modpow(
+    round_tester: &BigUint, 
+    max_divisions_by_2: u32, 
+    even_component: &BigUint, 
+    miller_rabin_candidate: &BigUint
+) -> bool {
+    let one = BigUint::from(1u32);
+    let two = BigUint::from(2u32);
+    if BigUint::modpow(
+        round_tester, 
+        even_component, 
+        miller_rabin_candidate
+    ) == one {
+        return false;
+    }
+    for i in 0..max_divisions_by_2 {
+        let exp = two.pow(i) * even_component;
+        if BigUint::modpow(
+            round_tester,
+            &exp, 
+            miller_rabin_candidate
+        ) == miller_rabin_candidate - &one {
+            return false;
+        }
+    }
+    true
+}
 
-fn miller_rabin(miller_rabin_candidate: &BigUint) -> bool {
+pub fn miller_rabin(miller_rabin_candidate: &BigUint) -> bool {
     let one = BigUint::from(1u32);
     let two = BigUint::from(2u32);
     let zero = BigUint::from(0u32);
@@ -207,6 +234,41 @@ fn miller_rabin(miller_rabin_candidate: &BigUint) -> bool {
             max_divisions_by_2, 
             even_component.clone(), 
             miller_rabin_candidate.clone()
+        ) {
+            return false;
+        }
+    }
+    true
+}
+
+pub fn miller_rabin_biguint_modpow(miller_rabin_candidate: &BigUint) -> bool {
+    let one = BigUint::from(1u32);
+    let two = BigUint::from(2u32);
+    let zero = BigUint::from(0u32);
+
+    let mut max_divisions_by_2 = 0;
+    let mut even_component = miller_rabin_candidate - &one;
+    let mut rng = rand::thread_rng(); 
+    while &even_component % &two == zero {
+        even_component >>= 1;
+        max_divisions_by_2 += 1;
+    }
+    // primality tests do not delete
+    let test1 = two.pow(max_divisions_by_2) * &even_component;
+    let test2 = miller_rabin_candidate - &one;
+    assert_eq!(test1, test2);
+    // set number of primes here
+    let number_of_rabin_trials = 20;
+    for _i in 0..number_of_rabin_trials {
+        let round_tester = rng.gen_biguint_range(
+            &two, 
+            miller_rabin_candidate
+        );
+        if trial_composite_biguint_modpow(
+            &round_tester, 
+            max_divisions_by_2, 
+            &even_component, 
+            &miller_rabin_candidate
         ) {
             return false;
         }
@@ -535,9 +597,9 @@ mod tests {
 
     #[test]
     fn assert_eq_mod_pow() {
-        let base = BigUint::from(439384002558036958644382685821u128); 
-        let exp: BigUint = BigUint::from(83693067478200621709339401075u128); 
-        let modulus: BigUint = BigUint::from(669544539825604973674715208601u128);
+        let base = BigUint::from(43938400255803695864438268582112345u128); 
+        let exp: BigUint = BigUint::from(8369306747820062170933940107512345u128); 
+        let modulus: BigUint = BigUint::from(66954453982560497367471520860112345u128);
         let t0 = Instant::now();
         let res1 = mod_pow(base.clone(), exp.clone(), modulus.clone());
         let t1 = Instant::now();
