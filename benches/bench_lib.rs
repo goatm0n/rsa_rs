@@ -16,6 +16,8 @@ use rsa_rs::{
             trial_composite_biguint_modpow,
             miller_rabin,
             miller_rabin_biguint_modpow,
+            get_n_bit_random_prime,
+            get_n_bit_random_prime_biguint_modpow,
         },
         io::cached_primes
     },
@@ -125,5 +127,35 @@ fn bench_miller_rabin_biguint_modpow(c: &mut Criterion) {
     );
 }
 
-criterion_group!(benches, bench_miller_rabin, bench_miller_rabin_biguint_modpow);
+#[allow(dead_code)]
+fn bench_get_n_bit_random_prime(c: &mut Criterion) {
+    let mut group = c.benchmark_group("get_prime_group");
+    let binding = cached_primes("primelist.txt");
+    let first_primes = binding.as_slice();
+    group.significance_level(0.1).sample_size(10);
+    group.bench_function(
+        "get_n_bit_random_prime", 
+        |b| b.iter(|| get_n_bit_random_prime(
+            &1024,
+            first_primes
+        ))
+    );
+}
+
+#[allow(dead_code)]
+fn bench_get_n_bit_random_prime_biguint_modpow(c: &mut Criterion) {
+    let mut group = c.benchmark_group("get_prime_biguint_modpow_group");
+    let binding = cached_primes("primelist.txt");
+    let first_primes = binding.as_slice();
+    group.significance_level(0.1).sample_size(10);
+    group.bench_function(
+        "get_n_bit_random_prime_biguint_modpow", 
+        |b| b.iter(|| get_n_bit_random_prime_biguint_modpow(
+            &1024,
+            first_primes
+        ))
+    );
+}
+
+criterion_group!(benches, bench_get_n_bit_random_prime, bench_get_n_bit_random_prime_biguint_modpow);
 criterion_main!(benches);

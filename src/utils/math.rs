@@ -287,6 +287,17 @@ pub fn get_n_bit_random_prime(n:&u32, first_primes: &[BigUint]) -> BigUint {
     }
 }
 
+pub fn get_n_bit_random_prime_biguint_modpow(n:&u32, first_primes: &[BigUint]) -> BigUint {
+    loop {
+        let miller_rabin_candidate = get_low_level_prime(n, first_primes);
+        if !miller_rabin_biguint_modpow(&miller_rabin_candidate) {
+            continue;
+        } else {
+            break miller_rabin_candidate;
+        }
+    }
+}
+
 /// Calls get_n_bit_random_prime on n_threads.
 /// Returns value from first thread finished
 pub fn thread_get_n_bit_random_prime(n:&u32, n_threads:u32, first_primes: &Vec<BigUint>) -> BigUint {
