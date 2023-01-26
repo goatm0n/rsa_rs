@@ -151,34 +151,6 @@ fn get_low_level_prime(n:&u32, first_primes: &[BigUint]) -> BigUint {
 }
 
 pub fn trial_composite(
-    round_tester: BigUint, 
-    max_divisions_by_2: u32, 
-    even_component: BigUint, 
-    miller_rabin_candidate: BigUint
-) -> bool {
-    let one = BigUint::from(1u32);
-    let two = BigUint::from(2u32);
-    if mod_pow(
-        round_tester.clone(), 
-        even_component.clone(), 
-        miller_rabin_candidate.clone()
-    ) == one {
-        return false;
-    }
-    for i in 0..max_divisions_by_2 {
-        let exp = two.pow(i) * &even_component;
-        if mod_pow(
-            round_tester.clone(), 
-            exp, 
-            miller_rabin_candidate.clone()
-        ) == &miller_rabin_candidate - &one {
-            return false;
-        }
-    }
-    true
-}
-
-pub fn trial_composite_biguint_modpow(
     round_tester: &BigUint, 
     max_divisions_by_2: u32, 
     even_component: &BigUint, 
@@ -230,41 +202,6 @@ pub fn miller_rabin(miller_rabin_candidate: &BigUint) -> bool {
             miller_rabin_candidate
         );
         if trial_composite(
-            round_tester, 
-            max_divisions_by_2, 
-            even_component.clone(), 
-            miller_rabin_candidate.clone()
-        ) {
-            return false;
-        }
-    }
-    true
-}
-
-pub fn miller_rabin_biguint_modpow(miller_rabin_candidate: &BigUint) -> bool {
-    let one = BigUint::from(1u32);
-    let two = BigUint::from(2u32);
-    let zero = BigUint::from(0u32);
-
-    let mut max_divisions_by_2 = 0;
-    let mut even_component = miller_rabin_candidate - &one;
-    let mut rng = rand::thread_rng(); 
-    while &even_component % &two == zero {
-        even_component >>= 1;
-        max_divisions_by_2 += 1;
-    }
-    // primality tests do not delete
-    let test1 = two.pow(max_divisions_by_2) * &even_component;
-    let test2 = miller_rabin_candidate - &one;
-    assert_eq!(test1, test2);
-    // set number of primes here
-    let number_of_rabin_trials = 20;
-    for _i in 0..number_of_rabin_trials {
-        let round_tester = rng.gen_biguint_range(
-            &two, 
-            miller_rabin_candidate
-        );
-        if trial_composite_biguint_modpow(
             &round_tester, 
             max_divisions_by_2, 
             &even_component, 
@@ -280,17 +217,6 @@ pub fn get_n_bit_random_prime(n:&u32, first_primes: &[BigUint]) -> BigUint {
     loop {
         let miller_rabin_candidate = get_low_level_prime(n, first_primes);
         if !miller_rabin(&miller_rabin_candidate) {
-            continue;
-        } else {
-            break miller_rabin_candidate;
-        }
-    }
-}
-
-pub fn get_n_bit_random_prime_biguint_modpow(n:&u32, first_primes: &[BigUint]) -> BigUint {
-    loop {
-        let miller_rabin_candidate = get_low_level_prime(n, first_primes);
-        if !miller_rabin_biguint_modpow(&miller_rabin_candidate) {
             continue;
         } else {
             break miller_rabin_candidate;
@@ -482,10 +408,10 @@ mod tests {
 
             let t_trial_composite_0 = Instant::now();
             let trial_composite = trial_composite(
-                round_tester, 
+                &round_tester, 
                 max_divisions_by_2, 
-                even_component.clone(), 
-                miller_rabin_candidate.clone()
+                &even_component, 
+                &miller_rabin_candidate
             );
             let t_trial_composite_1 = Instant::now();
             let t_trial_composite = t_trial_composite_1 - t_trial_composite_0;
