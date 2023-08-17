@@ -1,10 +1,10 @@
 # [goatm0n]: rsa_rs
 
-RSA implementation in Rust.
-
 [![crates.io][crate-image]][crate-link]
 [![Documentation][doc-image]][doc-link]
 [![dependency status][deps-image]][deps-link]
+
+RSA implementation in Rust.
 
 VERSION 0.2.0 BREAKING CHANGE
 -> Introduces num-bigint types 
