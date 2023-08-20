@@ -4,7 +4,11 @@
 [![Documentation][doc-image]][doc-link]
 [![dependency status][deps-image]][deps-link]
 
-RSA implementation in Rust.
+Rust library containing an implementation of the RSA cryptography algorithim.  \
+Functionality: \
+-> generate keypairs \
+-> encrypt / decrypt strings \
+-> generate random large primes \
 
 VERSION 0.2.0 BREAKING CHANGE
 -> Introduces num-bigint types 
