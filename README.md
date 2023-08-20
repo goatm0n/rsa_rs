@@ -1,4 +1,4 @@
-# [goatm0n]: rsa_rs
+# rsa_rs
 
 [![crates.io][crate-image]][crate-link]
 [![Documentation][doc-image]][doc-link]
