@@ -8,7 +8,7 @@ Rust library containing an implementation of the RSA cryptography algorithim.  \
 Functionality: \
 -> generate keypairs \
 -> encrypt / decrypt strings \
--> generate random large primes \
+-> generate random large primes 
 
 ## Example
 
